@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "qagmire"
+  site-url: "https://bamford.github.io/qagmire"
+  description: "Straightforward analysis of WEAVE data"
+  repo-branch: main
+  repo-url: "https://github.com/bamford/qagmire"
