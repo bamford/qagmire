@@ -130,12 +130,13 @@ def _is_lowres(fn):
     return "LR" in fits.getheader(fn)["RES-OBS"]
 
 
-def get_weave_files(level="*",    # pattern to match to the file level, e.g. raw, L1, L2
-                    filetype="*", # pattern to match to the file type, e.g. single, stack
-                    date="*",     # pattern to match to the date in format yyyymmdd
-                    runid="*",    # pattern to match to the runid
-                    lowres=True   # select low-res files, or high-res if False
-                    ):
+def get_weave_files(
+    level="*",  # pattern to match to the file level, e.g. raw, L1, L2
+    filetype="*",  # pattern to match to the file type, e.g. single, stack
+    date="*",  # pattern to match to the date in format yyyymmdd
+    runid="*",  # pattern to match to the runid
+    lowres=True,  # select low-res files, or high-res if False
+):
     """Get a list of matching WEAVE files."""
     pattern = f"{level}/{date}/{filetype}_*{runid}*.fits"
     pattern = os.path.join(os.environ["WEAVEIO_ROOTDIR"], pattern)
@@ -148,10 +149,13 @@ def get_weave_files(level="*",    # pattern to match to the file level, e.g. raw
     return files
 
 
-def get_lr_l2_stack_files(date="*",   # pattern to match to the date in format yyyymmdd
-                          runid="*"   # pattern to match to the runid
-                          ):
-    return get_weave_files(level="L2", filetype="stack", date=date, runid=runid, lowres=True)
+def get_lr_l2_stack_files(
+    date="*",  # pattern to match to the date in format yyyymmdd
+    runid="*",  # pattern to match to the runid
+):
+    return get_weave_files(
+        level="L2", filetype="stack", date=date, runid=runid, lowres=True
+    )
 
 # %% ../nbs/01_data.ipynb 21
 @via_netcdf
