@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['via_netcdf', 'ViaNetCDF', 'get_weave_files', 'get_lr_l2_stack_files', 'read_class_table', 'read_star_table',
-           'not_line_col', 'read_galaxy_table', 'read_class_spec', 'read_star_spec', 'read_galaxy_spec']
+           'read_galaxy_table', 'read_class_spec', 'read_star_spec', 'read_galaxy_spec']
 
 # %% ../nbs/01_data.ipynb 2
 import os
@@ -210,13 +210,38 @@ def read_star_table(fn):
     return xr.Dataset(cols, coords)
 
 # %% ../nbs/01_data.ipynb 32
-def not_line_col(c):
+def _not_line_col(c):
     """Identify columns that do not contain line measurements."""
     c = c.replace("ERR_", "")
-    for n in ["EBMV", "FLUX", "AMPL", "Z", "SIGMA", "AON", "FWHM"]:
+    for n in ["EBMV0", "EBMV1", "FLUX", "AMPL", "Z", "SIGMA", "AON", "FWHM"]:
         if c.startswith(n + "_"):
             return False
     return True
+
+
+def _process_line_quantities(cols, lines):
+    """Process line quantities.
+
+    Quantities with multiple elements are split into separate columns.
+
+    The supplied `cols` dictionary is modified in-place.
+    """
+    line_quantities = []
+    for c in list(cols):
+        if c.endswith(lines[0]):
+            qty = c.replace("_" + lines[0], "")
+            ndim = cols[c].ndim
+            if ndim == 1:
+                line_quantities.append(qty)
+            elif ndim == 2:
+                nq = cols[c].shape[1]
+                for i in range(nq):
+                    line_quantities.append(f"{qty}{i}")
+                for line in lines:
+                    oldcol = cols.pop(f"{qty}_{line}")
+                    for i in range(nq):
+                        cols[f"{qty}{i}_{line}"] = oldcol[:, i]
+    return line_quantities
 
 
 @via_netcdf
@@ -224,23 +249,28 @@ def read_galaxy_table(fn):
     """Read the GALAXY_TABLE from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
-    The `*EBMV*` have two elements additionally indexed by `I_EBMV`.
+    The line measurements are additionally indexed by the measurement quantity `QTY`
+    and the line name `LINE`.
+    The index measurements are additionally indexed by the index name `INDEX`.
     """
     # TODO: add units where missing
     dat = Table.read(fn, "GALAXY_TABLE", unit_parse_strict="silent")
     cols = dict(dat)
     cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
     coords = dict(APS_ID=cols.pop("APS_ID"))
+    coords["LINE"] = [c.replace("FLUX_", "") for c in cols if c.startswith("FLUX")]
+    coords["QTY"] = _process_line_quantities(cols, coords["LINE"])
+    coords["INDEX"] = [c for i, c in enumerate(cols) if (i > 100 and _not_line_col(c))]
+    line_cols = [
+        [cols.pop(f"{qty}_{line}") for line in coords["LINE"]] for qty in coords["QTY"]
+    ]
+    index_cols = [cols.pop(idx) for idx in coords["INDEX"]]
     out_cols = {}
     for i, c in enumerate(cols):
         dims = ["APS_ID"]
-        if "EBMV" in c:
-            dims += ["I_EBMV"]
-        if i > 100 and not_line_col(c):
-            out_c = f"IDX_{c}"
-        else:
-            out_c = c
-        out_cols[out_c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
+        out_cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
+    out_cols["LINES"] = xr.Variable(["QTY", "LINE", "APS_ID"], line_cols)
+    out_cols["INDICES"] = xr.Variable(["INDEX", "APS_ID"], index_cols)
     return xr.Dataset(out_cols, coords)
 
 # %% ../nbs/01_data.ipynb 37
