@@ -12,6 +12,7 @@ from functools import partial, wraps
 from glob import glob
 from typing import Callable
 
+import numpy as np
 import xarray as xr
 from astropy.io import fits
 from astropy.table import Table
@@ -124,7 +125,7 @@ class ViaNetCDF:
 # %% ../nbs/01_data.ipynb 6
 via_netcdf = ViaNetCDF()
 
-# %% ../nbs/01_data.ipynb 10
+# %% ../nbs/01_data.ipynb 9
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     return "LR" in fits.getheader(fn)["RES-OBS"]
@@ -157,7 +158,23 @@ def get_lr_l2_stack_files(
         level="L2", filetype="stack", date=date, runid=runid, lowres=True
     )
 
-# %% ../nbs/01_data.ipynb 21
+# %% ../nbs/01_data.ipynb 22
+def _read_fits_columns(
+    fn: str,  # the filename of the FITS file to read
+    ext: str,  # the name of the extension containing the table to read
+    limit_precision=False,  # convert all float64 columns to float32
+):
+    """Read a FITS table to a dict of arrays and convert endianness."""
+    cols = dict(Table.read(fn, ext, unit_parse_strict="silent"))
+    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    if limit_precision:
+        for c in list(cols):
+            if cols[c].dtype.type is np.float64:
+                if np.can_cast(np.max(np.abs(cols[c])), np.float32):
+                    cols[c] = cols[c].astype(np.float32)
+    return cols
+
+
 @via_netcdf
 def read_class_table(fn):
     """Read the CLASS_TABLE from a WEAVE L2 FITS file as a Dataset.
@@ -166,16 +183,14 @@ def read_class_table(fn):
     Chi-square values `CZZ_CHI2_*` for each template are further indexed by redshift `CZZ_*`.
     Coefficients `COEFF` and indexed by integers `I_COEFF`.
     """
-    dat = Table.read(fn, "CLASS_TABLE")
-    cols = dict(dat)
-    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    cols = _read_fits_columns(fn, "CLASS_TABLE")
     coords = dict(APS_ID=cols.pop("APS_ID"))
     # convert CZZ columns to coordinates
     for c in list(cols):
         if c.startswith("CZZ") and "CHI2" not in c:
             czz_all = cols.pop(c)
-            czz = czz_all.mean(axis=0).round(3)
-            assert (czz == czz_all.round(3)).all()
+            czz = czz_all[0]
+            assert (czz == czz_all).all()
             coords[c] = czz
     for c in cols:
         dims = ["APS_ID"]
@@ -195,9 +210,7 @@ def read_star_table(fn):
     The covariance matrix `COVAR` is additionally indexed by `I_COVAR`, `J_COVAR`.
     The elements `ELEM` and `ELEM_ERR` are additionally indexed by `I_ELEM`.
     """
-    dat = Table.read(fn, "STAR_TABLE")
-    cols = dict(dat)
-    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    cols = _read_fits_columns(fn, "STAR_TABLE")
     coords = dict(APS_ID=cols.pop("APS_ID"))
     coords["I_COVAR"] = coords["J_COVAR"] = ["TEFF", "LOGG", "FEH", "ALPHA", "MICRO"]
     for c in cols:
@@ -254,9 +267,7 @@ def read_galaxy_table(fn):
     The index measurements are additionally indexed by the index name `INDEX`.
     """
     # TODO: add units where missing
-    dat = Table.read(fn, "GALAXY_TABLE", unit_parse_strict="silent")
-    cols = dict(dat)
-    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    cols = _read_fits_columns(fn, "GALAXY_TABLE")
     coords = dict(APS_ID=cols.pop("APS_ID"))
     coords["LINE"] = [c.replace("FLUX_", "") for c in cols if c.startswith("FLUX")]
     coords["QTY"] = _process_line_quantities(cols, coords["LINE"])
@@ -281,16 +292,14 @@ def read_class_spec(fn):
     All quantities are indexed by the `APS_ID` of the fibre.
     Spectral quantities are additionally indexed by wavelength `LAMBDA_{B,R}`.
     """
-    dat = Table.read(fn, "CLASS_SPEC")
-    cols = dict(dat)
-    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    cols = _read_fits_columns(fn, "CLASS_SPEC", limit_precision=True)
     coords = dict(APS_ID=cols.pop("APS_ID"))
     for c in list(cols):
         if c.startswith("LAMBDA"):
             band = c.split("_")[-1]
             wl_all = cols.pop(c)
-            wl = wl_all.mean(axis=0).round(3)
-            assert (wl == wl_all.round(3)).all()
+            wl = wl_all[0]
+            assert (wl == wl_all).all()
             coords[f"LAMBDA_{band}"] = wl
     for c in cols:
         dims = ["APS_ID"]
@@ -310,9 +319,7 @@ def read_star_spec(fn):
     Spectral quantities are additionally indexed by wavelength bin `LAMBIN_{R,B,C}`,
     which does *not* correspond to the same wavelength for each spectrum.
     """
-    dat = Table.read(fn, "STAR_SPEC")
-    cols = dict(dat)
-    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    cols = _read_fits_columns(fn, "STAR_SPEC", limit_precision=True)
     coords = dict(APS_ID=cols.pop("APS_ID"))
     for c in cols:
         dims = ["APS_ID"]
@@ -325,7 +332,7 @@ def read_star_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 46
+# %% ../nbs/01_data.ipynb 51
 @via_netcdf
 def read_galaxy_spec(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -334,9 +341,7 @@ def read_galaxy_spec(fn):
     Spectral quantities are additionally indexed by log-wavelength bin `LOGLAMBIN`,
     which does *not* correspond to the same wavelength for each spectrum.
     """
-    dat = Table.read(fn, "GALAXY_SPEC", unit_parse_strict="silent")
-    cols = dict(dat)
-    cols = {c: cols[c].newbyteorder().byteswap() for c in cols}
+    cols = _read_fits_columns(fn, "GALAXY_SPEC", limit_precision=True)
     coords = dict(APS_ID=cols.pop("APS_ID"))
     for c in cols:
         dims = ["APS_ID"]
