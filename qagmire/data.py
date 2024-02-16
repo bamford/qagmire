@@ -332,7 +332,7 @@ def read_star_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 51
+# %% ../nbs/01_data.ipynb 47
 @via_netcdf
 def read_galaxy_spec(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
