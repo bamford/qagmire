@@ -92,8 +92,10 @@ class ViaNetCDF:
         fn_netcdf = f"{fn_netcdf}_{table}.nc"
         if not os.path.exists(fn_netcdf):
             ds = read_function(fn)
+            obid = fits.getval(fn, "OBID")
             fn_base = os.path.splitext(os.path.basename(fn))[0]
             ds = ds.expand_dims({"filename": [fn_base]})
+            ds = ds.assign_coords(obid=("filename", [obid]))
             os.makedirs(os.path.dirname(fn_netcdf), exist_ok=True)
             ds.to_netcdf(fn_netcdf)
         return fn_netcdf
