@@ -5,6 +5,7 @@ __all__ = ['via_netcdf', 'ViaNetCDF', 'get_weave_files', 'get_lr_l2_stack_files'
            'read_galaxy_table', 'read_class_spec', 'read_star_spec', 'read_galaxy_spec']
 
 # %% ../nbs/01_data.ipynb 2
+import logging
 import os
 import sys
 import time
@@ -18,7 +19,10 @@ from astropy.io import fits
 from astropy.table import Table
 from tqdm import tqdm
 
-# %% ../nbs/01_data.ipynb 4
+# %% ../nbs/01_data.ipynb 3
+logging.basicConfig()
+
+# %% ../nbs/01_data.ipynb 5
 class ViaNetCDF:
     """Access FITS tables as xarray Datasets via cached netCDF files.
 
@@ -92,12 +96,16 @@ class ViaNetCDF:
         fn_netcdf = f"{fn_netcdf}_{table}.nc"
         if not os.path.exists(fn_netcdf):
             ds = read_function(fn)
-            obid = fits.getval(fn, "OBID")
-            fn_base = os.path.splitext(os.path.basename(fn))[0]
-            ds = ds.expand_dims({"filename": [fn_base]})
-            ds = ds.assign_coords(obid=("filename", [obid]))
-            os.makedirs(os.path.dirname(fn_netcdf), exist_ok=True)
-            ds.to_netcdf(fn_netcdf)
+            if ds:
+                obid = fits.getval(fn, "OBID")
+                fn_base = os.path.splitext(os.path.basename(fn))[0]
+                ds = ds.expand_dims({"filename": [fn_base]})
+                ds = ds.assign_coords(obid=("filename", [obid]))
+                os.makedirs(os.path.dirname(fn_netcdf), exist_ok=True)
+                ds.to_netcdf(fn_netcdf)
+            else:
+                logging.warning(f"Cannot read {table} for file {fn}.")
+                fn_netcdf = None
         return fn_netcdf
 
     def __call__(
@@ -115,6 +123,7 @@ class ViaNetCDF:
             fns_netcdf = [
                 self.single_via_netcdf(read_function, fn) for fn in self.progress(fns)
             ]
+            fns_netcdf = [f for f in fns_netcdf if f is not None]
             print("Reading netCDF files... ", end="")
             start = time.perf_counter()
             data = xr.open_mfdataset(fns_netcdf, parallel=True)
@@ -124,10 +133,10 @@ class ViaNetCDF:
 
         return netcdf_wrapper
 
-# %% ../nbs/01_data.ipynb 6
+# %% ../nbs/01_data.ipynb 7
 via_netcdf = ViaNetCDF()
 
-# %% ../nbs/01_data.ipynb 9
+# %% ../nbs/01_data.ipynb 10
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     return "LR" in fits.getheader(fn)["RES-OBS"]
@@ -160,7 +169,7 @@ def get_lr_l2_stack_files(
         level="L2", filetype="stack", date=date, runid=runid, lowres=True
     )
 
-# %% ../nbs/01_data.ipynb 22
+# %% ../nbs/01_data.ipynb 23
 def _read_fits_columns(
     fn: str,  # the filename of the FITS file to read
     ext: str,  # the name of the extension containing the table to read
@@ -186,6 +195,8 @@ def read_class_table(fn):
     Coefficients `COEFF` and indexed by integers `I_COEFF`.
     """
     cols = _read_fits_columns(fn, "CLASS_TABLE")
+    if not cols:
+        return None
     coords = dict(APS_ID=cols.pop("APS_ID"))
     # convert CZZ columns to coordinates
     for c in list(cols):
@@ -203,7 +214,7 @@ def read_class_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 27
+# %% ../nbs/01_data.ipynb 28
 @via_netcdf
 def read_star_table(fn):
     """Read the STAR_TABLE from a WEAVE L2 FITS file as a Dataset.
@@ -213,6 +224,8 @@ def read_star_table(fn):
     The elements `ELEM` and `ELEM_ERR` are additionally indexed by `I_ELEM`.
     """
     cols = _read_fits_columns(fn, "STAR_TABLE")
+    if not cols:
+        return None
     coords = dict(APS_ID=cols.pop("APS_ID"))
     coords["I_COVAR"] = coords["J_COVAR"] = ["TEFF", "LOGG", "FEH", "ALPHA", "MICRO"]
     for c in cols:
@@ -224,7 +237,7 @@ def read_star_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 32
+# %% ../nbs/01_data.ipynb 33
 def _not_line_col(c):
     """Identify columns that do not contain line measurements."""
     c = c.replace("ERR_", "")
@@ -270,6 +283,8 @@ def read_galaxy_table(fn):
     """
     # TODO: add units where missing
     cols = _read_fits_columns(fn, "GALAXY_TABLE")
+    if not cols:
+        return None
     coords = dict(APS_ID=cols.pop("APS_ID"))
     coords["LINE"] = [c.replace("FLUX_", "") for c in cols if c.startswith("FLUX")]
     coords["QTY"] = _process_line_quantities(cols, coords["LINE"])
@@ -286,7 +301,7 @@ def read_galaxy_table(fn):
     out_cols["INDICES"] = xr.Variable(["INDEX", "APS_ID"], index_cols)
     return xr.Dataset(out_cols, coords)
 
-# %% ../nbs/01_data.ipynb 37
+# %% ../nbs/01_data.ipynb 38
 @via_netcdf
 def read_class_spec(fn):
     """Read the CLASS_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -295,6 +310,8 @@ def read_class_spec(fn):
     Spectral quantities are additionally indexed by wavelength `LAMBDA_{B,R}`.
     """
     cols = _read_fits_columns(fn, "CLASS_SPEC", limit_precision=True)
+    if not cols:
+        return None
     coords = dict(APS_ID=cols.pop("APS_ID"))
     for c in list(cols):
         if c.startswith("LAMBDA"):
@@ -312,7 +329,7 @@ def read_class_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 42
+# %% ../nbs/01_data.ipynb 43
 @via_netcdf
 def read_star_spec(fn):
     """Read the STAR_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -322,6 +339,8 @@ def read_star_spec(fn):
     which does *not* correspond to the same wavelength for each spectrum.
     """
     cols = _read_fits_columns(fn, "STAR_SPEC", limit_precision=True)
+    if not cols:
+        return None
     coords = dict(APS_ID=cols.pop("APS_ID"))
     for c in cols:
         dims = ["APS_ID"]
@@ -334,7 +353,7 @@ def read_star_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 47
+# %% ../nbs/01_data.ipynb 48
 @via_netcdf
 def read_galaxy_spec(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -344,6 +363,8 @@ def read_galaxy_spec(fn):
     which does *not* correspond to the same wavelength for each spectrum.
     """
     cols = _read_fits_columns(fn, "GALAXY_SPEC", limit_precision=True)
+    if not cols:
+        return None
     coords = dict(APS_ID=cols.pop("APS_ID"))
     for c in cols:
         dims = ["APS_ID"]
