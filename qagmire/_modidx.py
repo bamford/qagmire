@@ -25,5 +25,6 @@ d = { 'settings': { 'branch': 'main',
                               'qagmire.data.read_fibre_table': ('data.html#read_fibre_table', 'qagmire/data.py'),
                               'qagmire.data.read_galaxy_spec': ('data.html#read_galaxy_spec', 'qagmire/data.py'),
                               'qagmire.data.read_galaxy_table': ('data.html#read_galaxy_table', 'qagmire/data.py'),
+                              'qagmire.data.read_primary_header': ('data.html#read_primary_header', 'qagmire/data.py'),
                               'qagmire.data.read_star_spec': ('data.html#read_star_spec', 'qagmire/data.py'),
                               'qagmire.data.read_star_table': ('data.html#read_star_table', 'qagmire/data.py')}}}
