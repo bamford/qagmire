@@ -51,6 +51,8 @@ class FITStoDataset:
     and returned as an in-memory Dataset. This may be faster when dealing with lots of small
     files.
 
+    If `update_cache=False`, then existing cache files are not read, but are recreated.
+
     For example,
     ```
     via_netcdf = FITStoDataset()
@@ -66,6 +68,7 @@ class FITStoDataset:
         cache=True,  # cache the dataset to netCDF files
         netcdf_store: str | None = None,  # folder in which to store the netCDF files
         progress=True,  # display a progress bar
+        update_cache=False,  # read FITS files and recreate netCDF files, no effect if cache=False
     ):
         """Create a decorator that can extend a `read_*` function to multiple files.
 
@@ -73,6 +76,7 @@ class FITStoDataset:
         variable and falls back to a folder called `netcdf_store` in the user's home folder.
         """
         self.cache = cache
+        self.update_cache = update_cache
 
         if netcdf_store is not None:
             self.netcdf_store = netcdf_store
@@ -97,10 +101,23 @@ class FITStoDataset:
         """Read a FITS file to an xarray Dataset using the given read function."""
         ds = read_function(fn)
         if ds:
-            obid = fits.getval(fn, "OBID")
             fn_base = os.path.splitext(os.path.basename(fn))[0]
             ds = ds.expand_dims({"filename": [fn_base]})
-            ds = ds.assign_coords(obid=("filename", [obid]))
+            try:
+                run = fits.getval(fn, "RUN")
+                ds = ds.assign_coords(RUN=("filename", [run]))
+            except KeyError:
+                pass
+            try:
+                mjd = np.round(fits.getval(fn, "MJD-OBS"), 4)
+                ds = ds.assign_coords(MJD=("filename", [mjd]))
+            except KeyError:
+                pass
+            try:
+                obid = fits.getval(fn, "OBID")
+                ds = ds.assign_coords(OBID=("filename", [obid]))
+            except KeyError:
+                pass
         else:
             table = read_function.__name__.replace("read_", "")
             logging.warning(f"Cannot read {table} for file {fn}.")
@@ -123,7 +140,7 @@ class FITStoDataset:
         table = read_function.__name__.replace("read_", "")
         fn_netcdf = os.path.splitext(fn_netcdf)[0]
         fn_netcdf = f"{fn_netcdf}_{table}.nc"
-        if not os.path.exists(fn_netcdf):
+        if not os.path.exists(fn_netcdf) or self.update_cache:
             ds = self.read_single(read_function, fn)
             if ds:
                 os.makedirs(os.path.dirname(fn_netcdf), exist_ok=True)
@@ -177,10 +194,10 @@ class FITStoDataset:
 dask.config.set(scheduler="single-threaded")
 
 # %% ../nbs/01_data.ipynb 12
-via_netcdf = FITStoDataset()
+via_netcdf = FITStoDataset(update_cache=False)
 to_dataset = FITStoDataset(cache=False)
 
-# %% ../nbs/01_data.ipynb 15
+# %% ../nbs/01_data.ipynb 17
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     try:
@@ -235,7 +252,7 @@ def get_lr_l2_stack_files(
         level="L2", filetype="stack", date=date, runid=runid, lowres=True
     )
 
-# %% ../nbs/01_data.ipynb 16
+# %% ../nbs/01_data.ipynb 18
 def _read_fits_columns(
     fn: str,  # the filename of the FITS file to read
     ext: str,  # the name of the extension containing the table to read
@@ -255,7 +272,7 @@ def _read_fits_columns(
         cols = {c: cols[c][ok] for c in cols}
     return cols
 
-# %% ../nbs/01_data.ipynb 25
+# %% ../nbs/01_data.ipynb 27
 @to_dataset
 def read_primary_header(fn):
     """Read the primary header as a Dataset, stripping comments."""
@@ -265,7 +282,7 @@ def read_primary_header(fn):
             del hdr[key]
     return xr.Dataset(hdr)
 
-# %% ../nbs/01_data.ipynb 31
+# %% ../nbs/01_data.ipynb 33
 @to_dataset
 def read_fibre_table(fn):
     """Read the FIBTABLE from a WEAVE RAW FITS file as a Dataset.
@@ -281,7 +298,7 @@ def read_fibre_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 67
+# %% ../nbs/01_data.ipynb 69
 @via_netcdf
 def read_class_table(fn):
     """Read the CLASS_TABLE from a WEAVE L2 FITS file as a Dataset.
@@ -310,7 +327,7 @@ def read_class_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 72
+# %% ../nbs/01_data.ipynb 74
 @via_netcdf
 def read_star_table(fn):
     """Read the STAR_TABLE from a WEAVE L2 FITS file as a Dataset.
@@ -333,7 +350,7 @@ def read_star_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 77
+# %% ../nbs/01_data.ipynb 79
 def _not_line_col(c):
     """Identify columns that do not contain line measurements."""
     c = c.replace("ERR_", "")
@@ -397,7 +414,7 @@ def read_galaxy_table(fn):
     out_cols["INDICES"] = xr.Variable(["INDEX", "APS_ID"], index_cols)
     return xr.Dataset(out_cols, coords)
 
-# %% ../nbs/01_data.ipynb 82
+# %% ../nbs/01_data.ipynb 84
 @via_netcdf
 def read_class_spec(fn):
     """Read the CLASS_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -425,7 +442,7 @@ def read_class_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 87
+# %% ../nbs/01_data.ipynb 89
 @via_netcdf
 def read_star_spec(fn):
     """Read the STAR_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -449,7 +466,7 @@ def read_star_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 92
+# %% ../nbs/01_data.ipynb 94
 @via_netcdf
 def read_galaxy_spec(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
