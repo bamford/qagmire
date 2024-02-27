@@ -82,8 +82,7 @@ class Diagnostics(ABC):
     @staticmethod
     def summary(
         detail: xr.DataArray,  # the detailed test results
-        by: str
-        | None = None,  # optionally sum over all element dimensions except for this one
+        by: str | None = None,  # optionally sum element dims except for this one
         show_passed_tests=False,  # if `True`, then passed tests are included
         show_passed_elements=False,  # if `True`, then passed elements are included
         sort_by_total_fails=True,  # if `False`, then keep in original order
@@ -120,8 +119,7 @@ class Diagnostics(ABC):
     def summary_per_test(
         cls,
         detail: xr.DataArray,  # the detailed test results
-        by: str
-        | None = None,  # optionally sum over all element dimensions except for this one
+        by: str | None = None,  # optionally sum element dims except for this one
     ) -> pd.DataFrame:
         """Return a per-test summary of the test outcomes in `detail`."""
         return cls.summary(
@@ -136,8 +134,7 @@ class Diagnostics(ABC):
     def full_summary(
         cls,
         detail: xr.DataArray,  # the detailed test results
-        by: str
-        | None = None,  # optionally sum over all element dimensions except for this one
+        by: str | None = None,  # optionally sum element dims except for this one
     ) -> pd.DataFrame:
         """Return a full summary of the test outcomes in `detail`."""
         return cls.summary(
@@ -150,7 +147,7 @@ class Diagnostics(ABC):
             top=None,
         )
 
-# %% ../nbs/02_quality_assurance.ipynb 16
+# %% ../nbs/02_quality_assurance.ipynb 14
 class ObsCondCheck(Diagnostics):
     """Observing conditions check.
 
@@ -254,7 +251,7 @@ class ObsCondCheck(Diagnostics):
         ]
         return tests
 
-# %% ../nbs/02_quality_assurance.ipynb 21
+# %% ../nbs/02_quality_assurance.ipynb 19
 class LineFluxCheck(Diagnostics):
     """A reproduction of the weaveio [line_flux_check](https://github.com/bamford/QAG/blob/master/diagnostics/line_flux_check.py).
 
