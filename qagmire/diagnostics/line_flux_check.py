@@ -71,15 +71,13 @@ class LineFluxCheck(Diagnostics):
         return boundaries, gaps
 
     def tests(self, **kwargs):
-        lr_l2_stack_files = get_lr_l2_stack_files(**kwargs)
+        files = get_lr_l2_stack_files(**kwargs)
 
-        data = xr.merge(
-            (
-                read_class_spec(lr_l2_stack_files),
-                read_galaxy_table(lr_l2_stack_files),
-                read_class_table(lr_l2_stack_files),
-            )
-        )
+        data = [
+            read(files)
+            for read in (read_class_spec, read_galaxy_table, read_class_table)
+        ]
+        data = xr.merge(data)
 
         # perform the tests by OBID, rather than filename
         data = data.swap_dims(filename="OBID")
