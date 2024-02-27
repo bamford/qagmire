@@ -6,7 +6,6 @@ __all__ = ['via_netcdf', 'to_dataset', 'FITStoDataset', 'get_weave_files', 'get_
            'read_galaxy_table', 'read_class_spec', 'read_star_spec', 'read_galaxy_spec']
 
 # %% ../nbs/01_data.ipynb 2
-import logging
 import os
 import sys
 import time
@@ -22,10 +21,7 @@ from astropy.nddata import CCDData
 from astropy.table import Table
 from tqdm import tqdm
 
-# %% ../nbs/01_data.ipynb 3
-logging.basicConfig()
-
-# %% ../nbs/01_data.ipynb 5
+# %% ../nbs/01_data.ipynb 4
 class FITStoDataset:
     """Access multiple FITS tables as an xarray Dataset, optionally via cached netCDF files.
 
@@ -120,7 +116,7 @@ class FITStoDataset:
                 pass
         else:
             table = read_function.__name__.replace("read_", "")
-            logging.warning(f"Cannot read {table} for file {fn}.")
+            print(f"Warning: cannot read {table} for file {fn}.")
         return ds
 
     def single_via_netcdf(
@@ -190,14 +186,14 @@ class FITStoDataset:
 
         return wrapper
 
-# %% ../nbs/01_data.ipynb 8
+# %% ../nbs/01_data.ipynb 7
 dask.config.set(scheduler="single-threaded")
 
-# %% ../nbs/01_data.ipynb 12
+# %% ../nbs/01_data.ipynb 11
 via_netcdf = FITStoDataset(update_cache=False)
 to_dataset = FITStoDataset(cache=False)
 
-# %% ../nbs/01_data.ipynb 17
+# %% ../nbs/01_data.ipynb 16
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     try:
@@ -252,7 +248,7 @@ def get_lr_l2_stack_files(
         level="L2", filetype="stack", date=date, runid=runid, lowres=True
     )
 
-# %% ../nbs/01_data.ipynb 18
+# %% ../nbs/01_data.ipynb 17
 def _read_fits_columns(
     fn: str,  # the filename of the FITS file to read
     ext: str,  # the name of the extension containing the table to read
@@ -272,7 +268,7 @@ def _read_fits_columns(
         cols = {c: cols[c][ok] for c in cols}
     return cols
 
-# %% ../nbs/01_data.ipynb 27
+# %% ../nbs/01_data.ipynb 26
 @to_dataset
 def read_primary_header(fn):
     """Read the primary header as a Dataset, stripping comments."""
@@ -282,7 +278,7 @@ def read_primary_header(fn):
             del hdr[key]
     return xr.Dataset(hdr)
 
-# %% ../nbs/01_data.ipynb 33
+# %% ../nbs/01_data.ipynb 32
 @to_dataset
 def read_fibre_table(fn):
     """Read the FIBTABLE from a WEAVE RAW FITS file as a Dataset.
@@ -298,7 +294,7 @@ def read_fibre_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 69
+# %% ../nbs/01_data.ipynb 68
 @via_netcdf
 def read_class_table(fn):
     """Read the CLASS_TABLE from a WEAVE L2 FITS file as a Dataset.
@@ -327,7 +323,7 @@ def read_class_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 74
+# %% ../nbs/01_data.ipynb 73
 @via_netcdf
 def read_star_table(fn):
     """Read the STAR_TABLE from a WEAVE L2 FITS file as a Dataset.
@@ -350,7 +346,7 @@ def read_star_table(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 79
+# %% ../nbs/01_data.ipynb 78
 def _not_line_col(c):
     """Identify columns that do not contain line measurements."""
     c = c.replace("ERR_", "")
@@ -414,7 +410,7 @@ def read_galaxy_table(fn):
     out_cols["INDICES"] = xr.Variable(["INDEX", "APS_ID"], index_cols)
     return xr.Dataset(out_cols, coords)
 
-# %% ../nbs/01_data.ipynb 84
+# %% ../nbs/01_data.ipynb 83
 @via_netcdf
 def read_class_spec(fn):
     """Read the CLASS_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -442,7 +438,7 @@ def read_class_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 89
+# %% ../nbs/01_data.ipynb 88
 @via_netcdf
 def read_star_spec(fn):
     """Read the STAR_SPEC from a WEAVE L2 FITS file as a Dataset.
@@ -466,7 +462,7 @@ def read_star_spec(fn):
         cols[c] = xr.Variable(dims, cols[c], attrs={"unit": str(cols[c].unit)})
     return xr.Dataset(cols, coords)
 
-# %% ../nbs/01_data.ipynb 94
+# %% ../nbs/01_data.ipynb 93
 @via_netcdf
 def read_galaxy_spec(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
