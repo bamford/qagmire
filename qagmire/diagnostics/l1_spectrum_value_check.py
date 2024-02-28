@@ -6,6 +6,7 @@ __all__ = ['L1SpectrumValueCheck']
 # %% ../../nbs/diagnostics/13_l1_spectrum_value_check.ipynb 2
 import matplotlib.pyplot as plt
 import numpy as np
+from dask.distributed import Client
 
 from qagmire.data import (
     get_lr_l1_single_files,

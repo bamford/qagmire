@@ -5,6 +5,7 @@ __all__ = ['RawSpectrumValueCheck']
 
 # %% ../../nbs/diagnostics/12_raw_spectrum_value_check.ipynb 2
 import numpy as np
+from dask.distributed import Client
 
 from qagmire.data import (
     get_lr_raw_files,
