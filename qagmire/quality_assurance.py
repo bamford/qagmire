@@ -53,6 +53,7 @@ class Diagnostics(ABC):
         self.test_descriptions = dict(zip(test_names, test_desc))
         test_array = [t["test"] for t in tests]
         detail = xr.concat(test_array, pd.Index(test_names, name="test"))
+        detail.name = "failed"
         start = time.perf_counter()
         self.detail = dask.compute(detail)[0]
         detail.close()
@@ -96,7 +97,7 @@ class Diagnostics(ABC):
         by: str | None = None,  # optionally sum element dims except for this one
         show_passed_tests=False,  # if `True`, then passed tests are included
         show_passed_elements=False,  # if `True`, then passed elements are included
-        sort_by_total_fails=True,  # if `False`, then keep in original order
+        sort_by_total_fails=True,  # if `False`, then sort by index
         show_failure_count=True,  # if `False`, then omit the count of failures per row
         show_only_failure_count=False,  # if `True`, then only show the count of failures
         per_test=False,  # if `True`, then transpose output, such that each row is a test
@@ -122,8 +123,9 @@ class Diagnostics(ABC):
         ):
             df = df.loc[df.loc[:, "failed"].any(axis="columns")]
         df.loc[:, "total fails"] = df.sum(axis="columns")
+        df = df.sort_index()
         if sort_by_total_fails:
-            df = df.sort_values("total fails", ascending=False)
+            df = df.sort_values("total fails", ascending=False, kind="stable")
         if not (show_failure_count or show_only_failure_count):
             df = df.drop(columns="total fails")
         if show_only_failure_count:
