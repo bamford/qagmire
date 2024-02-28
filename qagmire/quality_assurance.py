@@ -55,6 +55,8 @@ class Diagnostics(ABC):
         detail = xr.concat(test_array, pd.Index(test_names, name="test"))
         start = time.perf_counter()
         self.detail = dask.compute(detail)[0]
+        detail.close()
+
         dt = time.perf_counter() - start
         print(f"Tests took {dt:.2f} s to perform.")
         for name, desc in self.test_descriptions.items():

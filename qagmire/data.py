@@ -4,15 +4,13 @@
 __all__ = ['to_dataset', 'to_dataset_without_cache', 'read_primary_header', 'read_raw_data', 'read_fibre_table',
            'read_class_table', 'read_star_table', 'read_galaxy_table', 'read_class_spec', 'read_star_spec',
            'read_galaxy_spec', 'FITStoDataset', 'get_weave_files', 'get_lr_raw_files', 'get_lr_l1_single_files',
-           'get_lr_l2_stack_files', 'primary_header_reader', 'raw_data_reader', 'fibre_table_reader',
-           'class_table_reader', 'star_table_reader', 'galaxy_table_reader', 'class_spec_reader', 'star_spec_reader',
-           'galaxy_spec_reader']
+           'get_lr_l2_stack_files']
 
-# %% ../nbs/01_data.ipynb 2
+# %% ../nbs/01_data.ipynb 3
 import os
 import sys
 import time
-from functools import partial
+from functools import partial, wraps
 from glob import glob
 from multiprocessing import Pool
 from typing import Callable
@@ -25,7 +23,7 @@ from astropy.nddata import CCDData
 from astropy.table import Table
 from tqdm import tqdm
 
-# %% ../nbs/01_data.ipynb 4
+# %% ../nbs/01_data.ipynb 6
 def _read_single(
     read_function: Callable[[str], xr.Dataset],  # function to read a FITS file
     fn: str,  # filename of FITS file to read
@@ -114,10 +112,10 @@ class FITStoDataset:
     ```
     to_dataset = FITStoDataset()
 
-    def class_spec_reader(fn):
+    def _class_spec_reader(fn):
         ...
 
-    read_class_spec = to_dataset(class_spec_reader)
+    read_class_spec = to_dataset(_class_spec_reader)
     ```
 
     If a source FITS file is changed, the corresponding files in `netcdf_store` can simply
@@ -175,6 +173,7 @@ class FITStoDataset:
         `self.cache=True` (the default).
         """
 
+        @wraps(read_function)
         def wrapper(fns):
             if self.cache:
                 read = partial(
@@ -224,14 +223,14 @@ class FITStoDataset:
 
         return wrapper
 
-# %% ../nbs/01_data.ipynb 7
+# %% ../nbs/01_data.ipynb 9
 dask.config.set(scheduler="single-threaded")
 
-# %% ../nbs/01_data.ipynb 11
+# %% ../nbs/01_data.ipynb 13
 to_dataset = FITStoDataset()
 to_dataset_without_cache = FITStoDataset(cache=False)
 
-# %% ../nbs/01_data.ipynb 16
+# %% ../nbs/01_data.ipynb 17
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     try:
@@ -286,7 +285,7 @@ def get_lr_l2_stack_files(
         level="L2", filetype="stack", date=date, runid=runid, lowres=True
     )
 
-# %% ../nbs/01_data.ipynb 17
+# %% ../nbs/01_data.ipynb 18
 def _read_fits_columns(
     fn: str,  # the filename of the FITS file to read
     ext: str,  # the name of the extension containing the table to read
@@ -306,8 +305,8 @@ def _read_fits_columns(
         cols = {c: cols[c][ok] for c in cols}
     return cols
 
-# %% ../nbs/01_data.ipynb 26
-def primary_header_reader(fn):
+# %% ../nbs/01_data.ipynb 27
+def _primary_header_reader(fn):
     """Read the primary header as a Dataset, stripping comments."""
     hdr = fits.getheader(fn, "PRIMARY")
     for key in hdr:
@@ -316,10 +315,10 @@ def primary_header_reader(fn):
     return xr.Dataset(hdr)
 
 
-read_primary_header = to_dataset_without_cache(primary_header_reader)
+read_primary_header = to_dataset_without_cache(_primary_header_reader)
 
-# %% ../nbs/01_data.ipynb 30
-def raw_data_reader(fn):
+# %% ../nbs/01_data.ipynb 32
+def _raw_data_reader(fn):
     """Read the *_DATA from a WEAVE RAW FITS file as a Dataset."""
     hdus = fits.open(fn)
     for h in hdus:
@@ -330,10 +329,10 @@ def raw_data_reader(fn):
     return xr.Dataset({"counts1": counts1, "counts2": counts2})
 
 
-read_raw_data = to_dataset(raw_data_reader)
+read_raw_data = to_dataset(_raw_data_reader)
 
-# %% ../nbs/01_data.ipynb 35
-def fibre_table_reader(fn):
+# %% ../nbs/01_data.ipynb 40
+def _fibre_table_reader(fn):
     """Read the FIBTABLE from a WEAVE RAW FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -348,10 +347,10 @@ def fibre_table_reader(fn):
     return xr.Dataset(cols, coords)
 
 
-read_fibre_table = to_dataset_without_cache(fibre_table_reader)
+read_fibre_table = to_dataset_without_cache(_fibre_table_reader)
 
-# %% ../nbs/01_data.ipynb 70
-def class_table_reader(fn):
+# %% ../nbs/01_data.ipynb 76
+def _class_table_reader(fn):
     """Read the CLASS_TABLE from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -379,10 +378,10 @@ def class_table_reader(fn):
     return xr.Dataset(cols, coords)
 
 
-read_class_table = to_dataset(class_table_reader)
+read_class_table = to_dataset(_class_table_reader)
 
-# %% ../nbs/01_data.ipynb 75
-def star_table_reader(fn):
+# %% ../nbs/01_data.ipynb 83
+def _star_table_reader(fn):
     """Read the STAR_TABLE from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -404,9 +403,9 @@ def star_table_reader(fn):
     return xr.Dataset(cols, coords)
 
 
-read_star_table = to_dataset(star_table_reader)
+read_star_table = to_dataset(_star_table_reader)
 
-# %% ../nbs/01_data.ipynb 80
+# %% ../nbs/01_data.ipynb 90
 def _not_line_col(c):
     """Identify columns that do not contain line measurements."""
     c = c.replace("ERR_", "")
@@ -441,7 +440,7 @@ def _process_line_quantities(cols, lines):
     return line_quantities
 
 
-def galaxy_table_reader(fn):
+def _galaxy_table_reader(fn):
     """Read the GALAXY_TABLE from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -470,10 +469,10 @@ def galaxy_table_reader(fn):
     return xr.Dataset(out_cols, coords)
 
 
-read_galaxy_table = to_dataset(galaxy_table_reader)
+read_galaxy_table = to_dataset(_galaxy_table_reader)
 
-# %% ../nbs/01_data.ipynb 85
-def class_spec_reader(fn):
+# %% ../nbs/01_data.ipynb 97
+def _class_spec_reader(fn):
     """Read the CLASS_SPEC from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -500,10 +499,10 @@ def class_spec_reader(fn):
     return xr.Dataset(cols, coords)
 
 
-read_class_spec = to_dataset(class_spec_reader)
+read_class_spec = to_dataset(_class_spec_reader)
 
-# %% ../nbs/01_data.ipynb 90
-def star_spec_reader(fn):
+# %% ../nbs/01_data.ipynb 104
+def _star_spec_reader(fn):
     """Read the STAR_SPEC from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -526,10 +525,10 @@ def star_spec_reader(fn):
     return xr.Dataset(cols, coords)
 
 
-read_star_spec = to_dataset(star_spec_reader)
+read_star_spec = to_dataset(_star_spec_reader)
 
-# %% ../nbs/01_data.ipynb 95
-def galaxy_spec_reader(fn):
+# %% ../nbs/01_data.ipynb 111
+def _galaxy_spec_reader(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
 
     All quantities are indexed by the `APS_ID` of the fibre.
@@ -548,4 +547,4 @@ def galaxy_spec_reader(fn):
     return xr.Dataset(cols, coords)
 
 
-read_galaxy_spec = to_dataset(galaxy_spec_reader)
+read_galaxy_spec = to_dataset(_galaxy_spec_reader)
