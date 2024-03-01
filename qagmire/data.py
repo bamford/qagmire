@@ -80,6 +80,7 @@ def _single_via_netcdf(
         if ds:
             os.makedirs(os.path.dirname(fn_netcdf), exist_ok=True)
             ds.to_netcdf(fn_netcdf, format="NETCDF4", engine="netcdf4")
+            ds.close()
         else:
             fn_netcdf = None
     return fn_netcdf

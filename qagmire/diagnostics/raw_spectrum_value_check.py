@@ -5,7 +5,6 @@ __all__ = ['RawSpectrumValueCheck']
 
 # %% ../../nbs/diagnostics/12_raw_spectrum_value_check.ipynb 2
 import numpy as np
-from dask.distributed import Client
 
 from qagmire.data import (
     get_lr_raw_files,
@@ -33,10 +32,11 @@ class RawSpectrumValueCheck(Diagnostics):
         self,
         saturation_limit_adu: float = 65535,  # the saturation limit in ADU
         n_allowed_saturated_pixels: int = 0,  # the number of allowed saturated pixels per counts array
+        **kwargs,  # additional keyword arguments are passed to the `Diagnostics` constructor
     ):
         self.saturation_limit_adu = saturation_limit_adu
         self.n_allowed_saturated_pixels = n_allowed_saturated_pixels
-        super().__init__()
+        super().__init__(**kwargs)
 
     def tests(self, **kwargs):
         files = get_lr_raw_files(**kwargs)

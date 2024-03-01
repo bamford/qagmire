@@ -6,10 +6,12 @@ __all__ = ['Diagnostics']
 # %% ../nbs/02_quality_assurance.ipynb 3
 import time
 from abc import ABC, abstractmethod
+from contextlib import nullcontext
 
 import dask
 import pandas as pd
 import xarray as xr
+from dask.distributed import Client
 
 # %% ../nbs/02_quality_assurance.ipynb 5
 class Diagnostics(ABC):
@@ -24,7 +26,10 @@ class Diagnostics(ABC):
     summaries of the test results can be created using the `summary` method.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        n_processes=1,  # how many subprocesses to use for computing the tests
+    ):
         """Initialise the diagnostic.
 
         If the subclass has options, these may be added like this:
@@ -40,6 +45,8 @@ class Diagnostics(ABC):
         """
         self.test_descriptions = None
         self.detail = None
+        self.data = None
+        self.n_processes = n_processes
 
     def run(self, **kwargs) -> xr.DataArray:
         """Compute the results of the tests.
@@ -55,9 +62,15 @@ class Diagnostics(ABC):
         detail = xr.concat(test_array, pd.Index(test_names, name="test"))
         detail.name = "failed"
         start = time.perf_counter()
-        self.detail = dask.compute(detail)[0]
+        if self.n_processes > 1:
+            maybe_dask_cluster = Client(
+                n_workers=self.n_processes, threads_per_worker=1, memory_limit="2GiB"
+            )
+        else:
+            maybe_dask_cluster = nullcontext()
+        with maybe_dask_cluster as _:
+            self.detail = dask.compute(detail)[0]
         detail.close()
-
         dt = time.perf_counter() - start
         print(f"Tests took {dt:.2f} s to perform.")
         for name, desc in self.test_descriptions.items():
@@ -83,6 +96,9 @@ class Diagnostics(ABC):
         ```
         where each `test_dataset` should be a boolean `xr.DataArray` of the same shape, giving
         the results of running the test on the data defined by `kwargs`.
+
+        Note that it can be convenient to assign `self.data` inside `tests`, to provide a way of
+        accessing the source data for verification purposes, without having to construct it again.
         """
         return [
             {

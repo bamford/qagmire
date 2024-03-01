@@ -6,7 +6,6 @@ __all__ = ['L1SpectrumValueCheck']
 # %% ../../nbs/diagnostics/13_l1_spectrum_value_check.ipynb 2
 import matplotlib.pyplot as plt
 import numpy as np
-from dask.distributed import Client
 
 from qagmire.data import (
     get_lr_l1_single_files,
@@ -36,10 +35,11 @@ class L1SpectrumValueCheck(Diagnostics):
         self,
         n_allowed_bad: int = 0,  # the number of allowed bad pixels per spectrum
         camera=None,  # limit to a specific camera: RED or BLUE
+        **kwargs,  # additional keyword arguments are passed to the `Diagnostics` constructor
     ):
         self.n_allowed_bad = n_allowed_bad
         self.camera = camera.upper()
-        super().__init__()
+        super().__init__(**kwargs)
 
     def tests(self, **kwargs):
         files = get_lr_l1_single_files(**kwargs)
@@ -54,6 +54,7 @@ class L1SpectrumValueCheck(Diagnostics):
 
         # perform the tests by RUN, rather than filename
         data = data.swap_dims(filename="RUN")
+        self.data = data
 
         neg = data < 0
         nan = ~np.isfinite(data)
