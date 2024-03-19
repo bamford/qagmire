@@ -4,6 +4,8 @@
 __all__ = ['ObsCondCheck']
 
 # %% ../../nbs/diagnostics/10_obs_cond_check.ipynb 2
+import xarray as xr
+
 from qagmire.data import (
     get_lr_l1_single_files,
     read_primary_header,
@@ -67,7 +69,9 @@ class ObsCondCheck(Diagnostics):
     @staticmethod
     def _get_and_check_by_ob(col):
         by_ob = col.groupby("OBID")
-        count, first = (by_ob.count(), by_ob.first())
+        with xr.set_options(use_flox=False):
+            # flox does not work with .count and string arrays
+            count, first = (by_ob.count(), by_ob.first())
         expected_runs = count == 6
         runs_match = (first != col).any(axis=-1)
         return first, expected_runs, runs_match

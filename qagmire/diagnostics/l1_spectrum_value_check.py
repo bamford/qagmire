@@ -38,7 +38,7 @@ class L1SpectrumValueCheck(Diagnostics):
         **kwargs,  # additional keyword arguments are passed to the `Diagnostics` constructor
     ):
         self.n_allowed_bad = n_allowed_bad
-        self.camera = camera.upper()
+        self.camera = camera.upper() if camera is not None else None
         super().__init__(**kwargs)
 
     def tests(self, **kwargs):

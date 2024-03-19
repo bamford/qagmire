@@ -36,7 +36,7 @@ class L1SpectrumMaskedValueCheck(Diagnostics):
         **kwargs,  # additional keyword arguments are passed to the `Diagnostics` constructor
     ):
         self.linearity_threshold_adu = linearity_threshold_adu
-        self.camera = camera.upper()
+        self.camera = camera.upper() if camera is not None else None
         super().__init__(**kwargs)
 
     def tests(self, **kwargs):
@@ -56,8 +56,6 @@ class L1SpectrumMaskedValueCheck(Diagnostics):
 
         tests = []
         for camera in cameras:
-            camera_match = data["CAMERA"] == camera
-
             flux_name = f"{camera}_FLUX_NOSS"
             negative_flux = data[flux_name] < 0
             nonlinear_flux = data[flux_name] > self.linearity_threshold_adu
@@ -65,23 +63,23 @@ class L1SpectrumMaskedValueCheck(Diagnostics):
             for ext in ["IVAR", "IVAR_NOSS"]:
                 name = f"{camera}_{ext}"
                 band = camera[0]
-                unmasked = (data[name] > 0) & camera_match
+                unmasked = data[name] > 0
                 unmasked_negative = unmasked & negative_flux
                 unmasked_nonlinear = unmasked & nonlinear_flux
                 any_unmasked_negative = unmasked_negative.any(dim=f"LAMBDA_{band}")
                 any_unmasked_nonlinear = unmasked_nonlinear.any(dim=f"LAMBDA_{band}")
-                tests.append(
-                    {
-                        "name": f"neg_flux_unmasked_in_{name}",
-                        "description": f"Are there unmasked pixels in {ext} where FLUX_NOSS is negative?",
-                        "test": any_unmasked_negative,
-                    }
-                )
-                tests.append(
-                    {
-                        "name": f"nlr_flux_unmasked_in_{name}",
-                        "description": f"Are there unmasked pixels in {ext} where FLUX_NOSS is non-linear?",
-                        "test": any_unmasked_nonlinear,
-                    }
+                tests.extend(
+                    [
+                        {
+                            "name": f"neg_flux_unmasked_in_{name}",
+                            "description": f"Are there unmasked pixels in {ext} where FLUX_NOSS is negative?",
+                            "test": any_unmasked_negative,
+                        },
+                        {
+                            "name": f"nlr_flux_unmasked_in_{name}",
+                            "description": f"Are there unmasked pixels in {ext} where FLUX_NOSS is non-linear?",
+                            "test": any_unmasked_nonlinear,
+                        },
+                    ]
                 )
         return tests

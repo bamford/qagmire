@@ -5,13 +5,15 @@ __all__ = ['Diagnostics']
 
 # %% ../nbs/02_quality_assurance.ipynb 3
 import time
+import warnings
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
 
 import dask
+import numpy as np
 import pandas as pd
 import xarray as xr
-from dask.distributed import Client
+from dask import distributed
 
 # %% ../nbs/02_quality_assurance.ipynb 5
 class Diagnostics(ABC):
@@ -46,6 +48,7 @@ class Diagnostics(ABC):
         self.test_descriptions = None
         self.detail = None
         self.data = None
+        self.stats = None
         self.n_processes = n_processes
 
     def run(self, **kwargs) -> xr.DataArray:
@@ -54,7 +57,10 @@ class Diagnostics(ABC):
         The `kwargs` are passed to `qagmire.data.read_*` functions to obtain the data
         for the tests.
         """
+        start = time.perf_counter()
         tests = self.tests(**kwargs)
+        dt = time.perf_counter() - start
+        print(f"Tests took {dt:.2f} s to prepare (including reading data).")
         test_names = [t["name"] for t in tests]
         test_desc = [t["description"] for t in tests]
         self.test_descriptions = dict(zip(test_names, test_desc))
@@ -63,13 +69,21 @@ class Diagnostics(ABC):
         detail.name = "failed"
         start = time.perf_counter()
         if self.n_processes > 1:
-            maybe_dask_cluster = Client(
+            maybe_dask_cluster = distributed.Client(
                 n_workers=self.n_processes, threads_per_worker=1, memory_limit="2GiB"
             )
         else:
             maybe_dask_cluster = nullcontext()
-        with maybe_dask_cluster as _:
-            self.detail = dask.compute(detail)[0]
+        with warnings.catch_warnings(
+            action="ignore", category=distributed.comm.core.CommClosedError
+        ):
+            with maybe_dask_cluster as _:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    # Tests may issues warnings, e.g. when calculating statistics on an
+                    # all-NaN spectrum, these can usually be safely ignored.
+                    # Unfortunately, this does not suppress warnings when running
+                    # on a dask cluster.
+                    self.detail = dask.compute(detail)[0]
         detail.close()
         dt = time.perf_counter() - start
         print(f"Tests took {dt:.2f} s to perform.")
@@ -97,8 +111,9 @@ class Diagnostics(ABC):
         where each `test_dataset` should be a boolean `xr.DataArray` of the same shape, giving
         the results of running the test on the data defined by `kwargs`.
 
-        Note that it can be convenient to assign `self.data` inside `tests`, to provide a way of
-        accessing the source data for verification purposes, without having to construct it again.
+        Note that it can be convenient to assign `self.data` and/or `self.stats` inside `tests`,
+        to provide a way of accessing the source data and/or statistics for verification purposes,
+        without having to construct them again.
         """
         return [
             {
@@ -123,13 +138,12 @@ class Diagnostics(ABC):
         if self.detail is None:
             print("You need to call `run` first.")
             return None
-        else:
-            detail = self.detail
-        if by is not None:
-            detail = detail.sum(dim=[d for d in detail.dims if d not in ("test", by)])
-        # convert to a dataframe and drop any extra coordinates
-        df = detail.to_dataframe(name="failed")[["failed"]]
+        df = self.detail.to_dataframe(name="failed")
+        idx = [c for c in df.columns if c != "failed"]
+        df = df.set_index(idx, append=True)
         df = df.unstack() if per_test else df.unstack("test")
+        if by is not None:
+            df = df.groupby(by).sum()
         if (not show_passed_tests and not per_test) or (
             not show_passed_elements and per_test
         ):
