@@ -4,7 +4,7 @@
 __all__ = ['to_dataset', 'to_dataset_without_cache', 'read_primary_header', 'read_raw_data', 'read_fibre_table',
            'read_fibre_table_nspec', 'read_l1_data', 'read_class_table', 'read_star_table', 'read_galaxy_table',
            'read_class_spec', 'read_star_spec', 'read_galaxy_spec', 'FITStoDataset', 'get_weave_files',
-           'get_lr_raw_files', 'get_lr_l1_single_files', 'get_lr_l2_stack_files']
+           'get_lr_raw_files', 'get_lr_l1_single_files', 'get_lr_l1_stack_files', 'get_lr_l2_stack_files']
 
 # %% ../nbs/01_data.ipynb 3
 import os
@@ -274,6 +274,15 @@ def get_lr_l1_single_files(
 ):
     return get_weave_files(
         level="L1", filetype="single", date=date, runid=runid, lowres=True
+    )
+
+
+def get_lr_l1_stack_files(
+    date="*",  # pattern to match to the date in format yyyymmdd
+    runid="*",  # pattern to match to the runid
+):
+    return get_weave_files(
+        level="L1", filetype="stack", date=date, runid=runid, lowres=True
     )
 
 
