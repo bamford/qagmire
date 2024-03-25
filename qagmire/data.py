@@ -15,7 +15,6 @@ from glob import glob
 from multiprocessing import Pool
 from typing import Callable
 
-import dask
 import numpy as np
 import xarray as xr
 from astropy.io import fits
@@ -228,14 +227,11 @@ class FITStoDataset:
 
         return wrapper
 
-# %% ../nbs/01_data.ipynb 9
-dask.config.set(scheduler="single-threaded")
-
-# %% ../nbs/01_data.ipynb 13
+# %% ../nbs/01_data.ipynb 8
 to_dataset = FITStoDataset()
 to_dataset_without_cache = FITStoDataset(cache=False)
 
-# %% ../nbs/01_data.ipynb 17
+# %% ../nbs/01_data.ipynb 12
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     try:
@@ -290,7 +286,7 @@ def get_lr_l2_stack_files(
         level="L2", filetype="stack", date=date, runid=runid, lowres=True
     )
 
-# %% ../nbs/01_data.ipynb 18
+# %% ../nbs/01_data.ipynb 13
 def _read_fits_columns(
     fn: str,  # the filename of the FITS file to read
     ext: str,  # the name of the extension containing the table to read
@@ -310,7 +306,7 @@ def _read_fits_columns(
         cols = {c: cols[c][ok] for c in cols}
     return cols
 
-# %% ../nbs/01_data.ipynb 27
+# %% ../nbs/01_data.ipynb 22
 def _primary_header_reader(fn):
     """Read the primary header as a Dataset, stripping comments."""
     hdr = fits.getheader(fn, "PRIMARY")
@@ -322,7 +318,7 @@ def _primary_header_reader(fn):
 
 read_primary_header = to_dataset_without_cache(_primary_header_reader)
 
-# %% ../nbs/01_data.ipynb 32
+# %% ../nbs/01_data.ipynb 27
 def _raw_data_reader(fn):
     """Read the *_DATA from a WEAVE RAW FITS file as a Dataset."""
     hdus = fits.open(fn)
@@ -336,7 +332,7 @@ def _raw_data_reader(fn):
 
 read_raw_data = to_dataset(_raw_data_reader)
 
-# %% ../nbs/01_data.ipynb 40
+# %% ../nbs/01_data.ipynb 35
 def _fibre_table_reader_indexed(fn, index_by_nspec=True):
     cols = _read_fits_columns(fn, "FIBTABLE", index="FIBREID")
     cols = {c.upper(): cols[c] for c in cols}
@@ -375,7 +371,7 @@ def _fibre_table_reader_nspec(fn):
 read_fibre_table = to_dataset_without_cache(_fibre_table_reader)
 read_fibre_table_nspec = to_dataset_without_cache(_fibre_table_reader_nspec)
 
-# %% ../nbs/01_data.ipynb 60
+# %% ../nbs/01_data.ipynb 55
 def _l1_data_reader(fn):
     """Read the data from a WEAVE L1 FITS file as a Dataset."""
     hdus = fits.open(fn)
@@ -404,7 +400,7 @@ def _l1_data_reader(fn):
 
 read_l1_data = to_dataset(_l1_data_reader)
 
-# %% ../nbs/01_data.ipynb 83
+# %% ../nbs/01_data.ipynb 79
 def _class_table_reader(fn):
     """Read the CLASS_TABLE from a WEAVE L2 FITS file as a Dataset.
 
@@ -435,7 +431,7 @@ def _class_table_reader(fn):
 
 read_class_table = to_dataset(_class_table_reader)
 
-# %% ../nbs/01_data.ipynb 90
+# %% ../nbs/01_data.ipynb 86
 def _star_table_reader(fn):
     """Read the STAR_TABLE from a WEAVE L2 FITS file as a Dataset.
 
@@ -460,7 +456,7 @@ def _star_table_reader(fn):
 
 read_star_table = to_dataset(_star_table_reader)
 
-# %% ../nbs/01_data.ipynb 97
+# %% ../nbs/01_data.ipynb 93
 def _not_line_col(c):
     """Identify columns that do not contain line measurements."""
     c = c.replace("ERR_", "")
@@ -526,7 +522,7 @@ def _galaxy_table_reader(fn):
 
 read_galaxy_table = to_dataset(_galaxy_table_reader)
 
-# %% ../nbs/01_data.ipynb 104
+# %% ../nbs/01_data.ipynb 100
 def _class_spec_reader(fn):
     """Read the CLASS_SPEC from a WEAVE L2 FITS file as a Dataset.
 
@@ -556,7 +552,7 @@ def _class_spec_reader(fn):
 
 read_class_spec = to_dataset(_class_spec_reader)
 
-# %% ../nbs/01_data.ipynb 111
+# %% ../nbs/01_data.ipynb 107
 def _star_spec_reader(fn):
     """Read the STAR_SPEC from a WEAVE L2 FITS file as a Dataset.
 
@@ -582,7 +578,7 @@ def _star_spec_reader(fn):
 
 read_star_spec = to_dataset(_star_spec_reader)
 
-# %% ../nbs/01_data.ipynb 118
+# %% ../nbs/01_data.ipynb 114
 def _galaxy_spec_reader(fn):
     """Read the GALAXY_SPEC from a WEAVE L2 FITS file as a Dataset.
 

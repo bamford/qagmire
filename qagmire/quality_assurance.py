@@ -16,6 +16,10 @@ import xarray as xr
 from dask import distributed
 
 # %% ../nbs/02_quality_assurance.ipynb 5
+# To avoid errors, we need to use dask single-threaded.
+dask.config.set(scheduler="single-threaded")
+
+
 class Diagnostics(ABC):
     """An abstract class to be subclassed to perform specific diagnostic checks.
 
