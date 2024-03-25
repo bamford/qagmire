@@ -211,7 +211,6 @@ class FITStoDataset:
                 start = time.perf_counter()
                 data = xr.open_mfdataset(
                     results,
-                    parallel=True,
                     combine="nested",
                     coords="minimal",
                     concat_dim="filename",
