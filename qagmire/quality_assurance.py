@@ -8,12 +8,14 @@ import time
 import warnings
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
+from time import sleep
 
 import dask
 import numpy as np
 import pandas as pd
 import xarray as xr
 from dask import distributed
+from tornado.iostream import StreamClosedError
 
 # %% ../nbs/02_quality_assurance.ipynb 5
 # To avoid errors, we need to use dask single-threaded.
@@ -78,16 +80,19 @@ class Diagnostics(ABC):
             )
         else:
             maybe_dask_cluster = nullcontext()
-        with warnings.catch_warnings(
-            action="ignore", category=distributed.comm.core.CommClosedError
-        ):
+        with warnings.catch_warnings():
+            warnings.simplefilter(
+                action="ignore", category=distributed.comm.core.CommClosedError
+            )
+            warnings.simplefilter(action="ignore", category=StreamClosedError)
             with maybe_dask_cluster as _:
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # Tests may issues warnings, e.g. when calculating statistics on an
                     # all-NaN spectrum, these can usually be safely ignored.
                     # Unfortunately, this does not suppress warnings when running
                     # on a dask cluster.
-                    self.detail = dask.compute(detail)[0]
+                    self.stats, self.detail = dask.compute(self.stats, detail)
+            sleep(1)  # to try to avoid CommClosedError warnings
         detail.close()
         dt = time.perf_counter() - start
         print(f"Tests took {dt:.2f} s to perform.")
@@ -143,21 +148,52 @@ class Diagnostics(ABC):
             print("You need to call `run` first.")
             return None
         df = self.detail.to_dataframe(name="failed")
+        df = df.dropna(how="all", subset="failed")
+        df["failed"] = df["failed"].astype(bool)
+        n_tests = df.index.get_level_values("test").nunique()
+        total_tests = len(df)
+        n_elements_per_test = total_tests // n_tests
+        print(
+            f"{n_tests} varieties of test and {n_elements_per_test} tested elements per variety, for total of {total_tests} tests."
+        )
         idx = [c for c in df.columns if c != "failed"]
         df = df.set_index(idx, append=True)
-        df = df.unstack() if per_test else df.unstack("test")
         if by is not None:
+            if not isinstance(by, (tuple, list)):
+                by = [by]
+            if "test" not in by:
+                by = ["test"] + list(by)
             df = df.groupby(by).sum()
-        if (not show_passed_tests and not per_test) or (
-            not show_passed_elements and per_test
+        if per_test:
+            idx = [c for c in df.index.names if c != "test"]
+            df = df.unstack(idx)
+        else:
+            df = df.unstack("test")
+        if (not per_test and not show_passed_tests) or (
+            per_test and not show_passed_elements
         ):
-            df = df.loc[:, df.any(axis="rows")]
-        if (not show_passed_elements and not per_test) or (
-            not show_passed_tests and per_test
+            columns_with_failures = df.any(axis="rows")
+            if columns_with_failures.any():
+                df = df.loc[:, columns_with_failures]
+            else:
+                print("All tests passed.")
+                return None
+        if (not per_test and not show_passed_elements) or (
+            per_test and not show_passed_tests
         ):
-            df = df.loc[df.loc[:, "failed"].any(axis="columns")]
-        df.loc[:, "total fails"] = df.sum(axis="columns")
+            rows_with_failures = df.loc[:, ["failed"]].any(axis="columns")
+            if rows_with_failures.any():
+                df = df.loc[rows_with_failures]
+            else:
+                print("All tests passed.")
+                return None
         df = df.sort_index()
+        df.loc[:, "total fails"] = df.sum(axis="columns")
+        total_fails = df.loc[:, "total fails"].sum()
+        print(
+            f"{total_fails} tests failed ({100*total_fails/total_tests:.2f}%) and "
+            f"{total_tests - total_fails} tests passed ({100*(total_tests - total_fails)/total_tests:.2f}%)."
+        )
         if sort_by_total_fails:
             df = df.sort_values("total fails", ascending=False, kind="stable")
         if not (show_failure_count or show_only_failure_count):
@@ -170,11 +206,10 @@ class Diagnostics(ABC):
 
     def summary_per_test(
         self,
-        by: str | None = None,  # optionally sum element dims except for this one
     ) -> pd.DataFrame:
         """Return a per-test summary of the test outcomes in `detail`."""
         return self.summary(
-            by=by,
+            by="test",
             per_test=True,
             show_passed_tests=True,
             show_only_failure_count=True,

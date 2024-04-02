@@ -45,7 +45,7 @@ def _read_single(
         except KeyError:
             pass
         try:
-            mjd = np.round(fits.getval(fn, "MJD-OBS"), 4)
+            mjd = fits.getval(fn, "MJD-OBS")
             ds = ds.assign_coords(MJD=("filename", [mjd]))
             night = mjd_to_night(mjd)
             ds = ds.assign_coords(NIGHT=("filename", [night]))
@@ -233,6 +233,7 @@ to_dataset_without_cache = FITStoDataset(cache=False)
 # %% ../nbs/01_data.ipynb 12
 data_path = "/beegfs/weavelofar"
 
+
 def _is_lowres(fn):
     """Check the header of FITS file `fn` to determine if it is low-resolution."""
     try:
@@ -253,10 +254,9 @@ def get_weave_files(
     """Get a list of matching WEAVE files."""
     if level != "raw":
         filetype += "_"
-    level = "".join(f"[{l.upper()+l.lower()}]" for l in level)
+    level = "".join(f"[{c.upper()+c.lower()}]" for c in level)
     pattern = f"**/{level}/{date}*/{filetype}*{runid}*.fit*"
     pattern = os.path.join(data_path, folder, pattern)
-    print(pattern)
     files = glob(pattern, recursive=True)
     files.sort()
     if lowres:
@@ -271,7 +271,9 @@ def get_lr_raw_files(
     runid="*",  # pattern to match to the runid
     folder="weaveio",  # folder within the `data_path`
 ):
-    return get_weave_files(level="raw", date=date, runid=runid, lowres=True, folder=folder)
+    return get_weave_files(
+        level="raw", date=date, runid=runid, lowres=True, folder=folder
+    )
 
 
 def get_lr_l1_single_files(
@@ -280,7 +282,12 @@ def get_lr_l1_single_files(
     folder="weaveio",  # folder within the `data_path`
 ):
     return get_weave_files(
-        level="L1", filetype="single", date=date, runid=runid, lowres=True, folder=folder
+        level="L1",
+        filetype="single",
+        date=date,
+        runid=runid,
+        lowres=True,
+        folder=folder,
     )
 
 
@@ -409,7 +416,7 @@ def _l1_data_reader(fn):
     for ext in ["DATA", "IVAR", "DATA_NOSS", "IVAR_NOSS", "SENSFUNC"]:
         name = f"{camera}_{ext}"
         data = hdus[name].data
-        unit = hdus[name].header["BUNIT"]
+        unit = "adu"  # hdus[name].header["BUNIT"]
         name = name.replace("DATA", "FLUX")
         arrays[name] = xr.Variable(dims, data, attrs={"unit": str(unit)})
     return xr.Dataset(arrays, coords)

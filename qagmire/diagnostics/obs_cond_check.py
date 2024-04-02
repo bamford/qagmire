@@ -11,7 +11,7 @@ from qagmire.data import (
     read_primary_header,
 )
 from ..quality_assurance import Diagnostics
-from ..utilities import parse_obstemp
+from ..utilities import add_expid, parse_obstemp
 
 # %% ../../nbs/diagnostics/10_obs_cond_check.ipynb 4
 class ObsCondCheck(Diagnostics):
@@ -24,21 +24,25 @@ class ObsCondCheck(Diagnostics):
     * Is the sky brighter than the requirement?
     * Is the seeing worse than the requirement?
 
-    and also some supplementary tests:
+    and some supplementary tests, if `by_exposure=True`:
 
-    * Are there the other than two runs with the same MJD?
-    * Do runs with the same MJD have different sky brightness?
-    * Do runs with the same MJD have different seeing?
+    * Are there other than two runs with the same EXPID?
+    * Do runs with the same EXPID have different sky brightness?
+    * Do runs with the same EXPID have different seeing?
+
+    or if `by_exposure=False`:
+    * Are there other than six runs with the same OBID?
     """
 
     def __init__(
         self,
         sky_tolerance: float = 0.0,  # the tolerance in the sky brightness in magnitudes
         seeing_tolerance: float = 0.0,  # the tolerance in the seeing in arcsec
-        by_exposure=False,  # should the checks be performed per exposure, or per OB (the default)
+        by_exposure=True,  # should the checks be performed per exposure (the default), or per OB
     ):
         self.sky_tolerance = sky_tolerance
         self.seeing_tolerance = seeing_tolerance
+        self.by_exposure = by_exposure
         if by_exposure:
             self._get_and_check = self._get_and_check_by_exp
         else:
@@ -51,14 +55,15 @@ class ObsCondCheck(Diagnostics):
 
     @classmethod
     def _get_and_check_by_exp(cls, col):
+        col = col.reset_coords("CAMERA", drop=True)
         coords = (
-            col.swap_dims(filename="MJD")
+            col.swap_dims(filename="EXPID")
             .coords.to_dataset()
             .reset_coords()
-            .groupby("MJD")
+            .groupby("EXPID")
             .first()
         )
-        by_exp = col.groupby("MJD")
+        by_exp = col.groupby("EXPID")
         count, first, last = cls._restore_coords(
             coords, (by_exp.count(), by_exp.first(), by_exp.last())
         )
@@ -82,9 +87,13 @@ class ObsCondCheck(Diagnostics):
     ):
         files = get_lr_l1_single_files(**kwargs)
         hdr = read_primary_header(files)
+        if self.by_exposure:
+            hdr = add_expid(hdr)
 
-        obstemp, two_runs, obstemp_runs_match = self._get_and_check(hdr["OBSTEMP"])
+        obstemp, count_runs, obstemp_runs_match = self._get_and_check(hdr["OBSTEMP"])
         obs = parse_obstemp(obstemp)
+
+        self.data = (hdr, obs)
 
         sky, _, sky_runs_match = self._get_and_check(hdr["SKYBRTEL"])
         sky_fail = sky < obs["sky_brightness"] - self.sky_tolerance
@@ -95,27 +104,43 @@ class ObsCondCheck(Diagnostics):
             {
                 "name": "sky_too_bright",
                 "description": "Is the sky brighter than the requirement?",
-                "test": ~sky_fail,
+                "test": sky_fail,
             },
             {
                 "name": "seeing_too_poor",
                 "description": "Is the seeing worse than the requirement?",
-                "test": ~seeing_fail,
-            },
-            {
-                "name": "wrong_run_count",
-                "description": "Are there the other than six runs in each OB?",
-                "test": ~two_runs,
-            },
-            {
-                "name": "unmatched_runs_sky",
-                "description": "Do runs in the same OB have different sky brightness?",
-                "test": ~sky_runs_match,
-            },
-            {
-                "name": "unmatched_runs_seeing",
-                "description": "Do runs in the same OB have different seeing?",
-                "test": ~seeing_runs_match,
+                "test": seeing_fail,
             },
         ]
+        if self.by_exposure:
+            tests.extend(
+                [
+                    {
+                        "name": "wrong_run_count",
+                        "description": "Are there other than two runs with the same EXPID?",
+                        "test": ~count_runs,
+                    },
+                    {
+                        "name": "unmatched_runs_sky",
+                        "description": "Do runs with the same EXPID have different sky brightness?",
+                        "test": ~sky_runs_match,
+                    },
+                    {
+                        "name": "unmatched_runs_seeing",
+                        "description": "Do runs with the same EXPID have different seeing?",
+                        "test": ~seeing_runs_match,
+                    },
+                ]
+            )
+        else:
+            tests.extend(
+                [
+                    {
+                        "name": "wrong_run_count",
+                        "description": "Are there other than six runs with the same OBID?",
+                        "test": ~count_runs,
+                    },
+                ]
+            )
+
         return tests

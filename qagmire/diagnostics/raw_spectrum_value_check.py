@@ -5,6 +5,7 @@ __all__ = ['RawSpectrumValueCheck']
 
 # %% ../../nbs/diagnostics/12_raw_spectrum_value_check.ipynb 2
 import numpy as np
+import xarray as xr
 
 from qagmire.data import (
     get_lr_raw_files,
@@ -40,46 +41,34 @@ class RawSpectrumValueCheck(Diagnostics):
 
     def tests(self, **kwargs):
         files = get_lr_raw_files(**kwargs)
-        data = read_raw_data(files)
-
-        sat = data >= self.saturation_limit_adu
-        neg = data < 0
-        nan = ~np.isfinite(data)
-
-        count_sat = sat.sum(dim=["dim_0", "dim_1"])
-        any_neg = neg.any(dim=["dim_0", "dim_1"])
-        any_nan = nan.any(dim=["dim_0", "dim_1"])
-
-        tests = [
-            {
-                "name": "too_many_sat_in_counts1",
-                "description": "Are there too many pixels saturated above the ADU threshold in counts1?",
-                "test": count_sat["counts1"] > self.n_allowed_saturated_pixels,
-            },
-            {
-                "name": "neg_pixels_in_counts1",
-                "description": "Are there negative pixel values in counts1?",
-                "test": any_neg["counts1"],
-            },
-            {
-                "name": "nan_pixels_in_counts1",
-                "description": "Are there non-finite pixel values in counts1?",
-                "test": any_nan["counts1"],
-            },
-            {
-                "name": "too_many_sat_in_counts2",
-                "description": "Are there too many pixels saturated above the ADU threshold in counts2",
-                "test": count_sat["counts2"] > self.n_allowed_saturated_pixels,
-            },
-            {
-                "name": "neg_pixels_in_counts2",
-                "description": "Are there negative pixel values in counts2?",
-                "test": any_neg["counts2"],
-            },
-            {
-                "name": "nan_pixels_in_counts2",
-                "description": "Are there non-finite pixel values in counts2?",
-                "test": any_nan["counts2"],
-            },
-        ]
+        self.data = read_raw_data(files)
+        self.stats = xr.Dataset()
+        tests = []
+        for i in [1, 2]:
+            sat = self.data[f"counts{i}"] >= self.saturation_limit_adu
+            self.stats[f"counts{i}_sat"] = sat.sum(dim=["dim_0", "dim_1"])
+            neg = self.data[f"counts{i}"] < 0
+            self.stats[f"counts{i}_neg"] = neg.sum(dim=["dim_0", "dim_1"])
+            nan = ~np.isfinite(self.data[f"counts{i}"])
+            self.stats[f"counts{i}_nan"] = nan.sum(dim=["dim_0", "dim_1"])
+            tests.extend(
+                [
+                    {
+                        "name": f"too_many_sat_in_counts{i}",
+                        "description": f"Are there too many pixels saturated above the ADU threshold in counts{i}?",
+                        "test": self.stats[f"counts{i}_sat"]
+                        > self.n_allowed_saturated_pixels,
+                    },
+                    {
+                        "name": f"neg_pixels_in_counts{i}",
+                        "description": f"Are there negative pixel values in counts{i}?",
+                        "test": self.stats[f"counts{i}_neg"] > 0,
+                    },
+                    {
+                        "name": f"nan_pixels_in_counts{i}",
+                        "description": f"Are there non-finite pixel values in counts{i}?",
+                        "test": self.stats[f"counts{i}_nan"] > 0,
+                    },
+                ]
+            )
         return tests
