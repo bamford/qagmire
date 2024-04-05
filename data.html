@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.553">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Functionality for efficiently accessing data in WEAVE fits files">
+
+<title>qagmire - data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="qagmire - data">
+<meta property="og:description" content="Functionality for efficiently accessing data in WEAVE fits files">
+<meta property="og:site_name" content="qagmire">
+<meta name="twitter:title" content="qagmire - data">
+<meta name="twitter:description" content="Functionality for efficiently accessing data in WEAVE fits files">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">qagmire</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./data.html">data</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">qagmire</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">data</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./quality_assurance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">quality_assurance</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utilities</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">diagnostics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/obs_cond_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Observing conditions check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/line_flux_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Line flux existence check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/raw_spectrum_value_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Raw spectrum value check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/l1_spectrum_value_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">L1 spectrum value check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/l1_spectrum_masked_value_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">L1 spectrum masked value check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/sky_noise_distribution_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sky noise distribution check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./diagnostics/measured_sky_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Measured sky check</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">ga-calib</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ga-calib/obs_cond_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Observing conditions check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ga-calib/raw_spectrum_value_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Raw spectrum value check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ga-calib/l1_spectrum_value_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">L1 spectrum value check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ga-calib/l1_spectrum_masked_value_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">L1 spectrum masked value check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ga-calib/sky_noise_distribution_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sky noise distribution check</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ga-calib/measured_sky_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Measured sky check</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#accessing-fits-tables-as-xarray-datasets-via-cached-netcdf-files" id="toc-accessing-fits-tables-as-xarray-datasets-via-cached-netcdf-files" class="nav-link active" data-scroll-target="#accessing-fits-tables-as-xarray-datasets-via-cached-netcdf-files">Accessing FITS tables as xarray Datasets via cached netCDF files</a>
+  <ul class="collapse">
+  <li><a href="#fitstodataset" id="toc-fitstodataset" class="nav-link" data-scroll-target="#fitstodataset">FITStoDataset</a></li>
+  <li><a href="#create-the-to_dataset-and-to_dataset_without_cache-wrapping-functions" id="toc-create-the-to_dataset-and-to_dataset_without_cache-wrapping-functions" class="nav-link" data-scroll-target="#create-the-to_dataset-and-to_dataset_without_cache-wrapping-functions">Create the <code>to_dataset</code> and <code>to_dataset_without_cache</code> wrapping functions</a></li>
+  </ul></li>
+  <li><a href="#locating-weave-fits-files" id="toc-locating-weave-fits-files" class="nav-link" data-scroll-target="#locating-weave-fits-files">Locating WEAVE FITS files</a>
+  <ul class="collapse">
+  <li><a href="#get_lr_l2_stack_files" id="toc-get_lr_l2_stack_files" class="nav-link" data-scroll-target="#get_lr_l2_stack_files">get_lr_l2_stack_files</a></li>
+  <li><a href="#get_lr_l1_stack_files" id="toc-get_lr_l1_stack_files" class="nav-link" data-scroll-target="#get_lr_l1_stack_files">get_lr_l1_stack_files</a></li>
+  <li><a href="#get_lr_l1_single_files" id="toc-get_lr_l1_single_files" class="nav-link" data-scroll-target="#get_lr_l1_single_files">get_lr_l1_single_files</a></li>
+  <li><a href="#get_lr_raw_files" id="toc-get_lr_raw_files" class="nav-link" data-scroll-target="#get_lr_raw_files">get_lr_raw_files</a></li>
+  <li><a href="#get_weave_files" id="toc-get_weave_files" class="nav-link" data-scroll-target="#get_weave_files">get_weave_files</a></li>
+  </ul></li>
+  <li><a href="#raw-files" id="toc-raw-files" class="nav-link" data-scroll-target="#raw-files">Raw files</a>
+  <ul class="collapse">
+  <li><a href="#primary" id="toc-primary" class="nav-link" data-scroll-target="#primary">PRIMARY</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">DATA</a></li>
+  <li><a href="#fibtable" id="toc-fibtable" class="nav-link" data-scroll-target="#fibtable">FIBTABLE</a></li>
+  <li><a href="#guidinfo" id="toc-guidinfo" class="nav-link" data-scroll-target="#guidinfo">GUIDINFO</a></li>
+  <li><a href="#metinfo" id="toc-metinfo" class="nav-link" data-scroll-target="#metinfo">METINFO</a></li>
+  </ul></li>
+  <li><a href="#l1-files" id="toc-l1-files" class="nav-link" data-scroll-target="#l1-files">L1 files</a>
+  <ul class="collapse">
+  <li><a href="#primary-1" id="toc-primary-1" class="nav-link" data-scroll-target="#primary-1">PRIMARY</a></li>
+  <li><a href="#data-and-sensfunc" id="toc-data-and-sensfunc" class="nav-link" data-scroll-target="#data-and-sensfunc">DATA and SENSFUNC</a></li>
+  <li><a href="#fibtable-1" id="toc-fibtable-1" class="nav-link" data-scroll-target="#fibtable-1">FIBTABLE</a></li>
+  </ul></li>
+  <li><a href="#l2-files" id="toc-l2-files" class="nav-link" data-scroll-target="#l2-files">L2 files</a>
+  <ul class="collapse">
+  <li><a href="#primary-2" id="toc-primary-2" class="nav-link" data-scroll-target="#primary-2">PRIMARY</a></li>
+  <li><a href="#class_table" id="toc-class_table" class="nav-link" data-scroll-target="#class_table">CLASS_TABLE</a></li>
+  <li><a href="#star_table" id="toc-star_table" class="nav-link" data-scroll-target="#star_table">STAR_TABLE</a></li>
+  <li><a href="#galaxy_table" id="toc-galaxy_table" class="nav-link" data-scroll-target="#galaxy_table">GALAXY_TABLE</a></li>
+  <li><a href="#class_spec" id="toc-class_spec" class="nav-link" data-scroll-target="#class_spec">CLASS_SPEC</a></li>
+  <li><a href="#star_spec" id="toc-star_spec" class="nav-link" data-scroll-target="#star_spec">STAR_SPEC</a></li>
+  <li><a href="#galaxy_spec" id="toc-galaxy_spec" class="nav-link" data-scroll-target="#galaxy_spec">GALAXY_SPEC</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/bamford/qagmire/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">data</h1>
+</div>
+
+<div>
+  <div class="description">
+    Functionality for efficiently accessing data in WEAVE fits files
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>The <code>data</code> module provides functions for locating and reading WEAVE data as <code>xarray</code> <code>Dataset</code>s.</p>
+<section id="accessing-fits-tables-as-xarray-datasets-via-cached-netcdf-files" class="level2">
+<h2 class="anchored" data-anchor-id="accessing-fits-tables-as-xarray-datasets-via-cached-netcdf-files">Accessing FITS tables as xarray Datasets via cached netCDF files</h2>
+<p>The approach of <code>qagmire</code> is to access WEAVE data stored on disk in FITS files on disk. To analyse this large, multi-dimensional dataset we utilize <a href="https://docs.xarray.dev"><code>xarray</code></a>, making use of its ability to use <code>dask</code> to perform computations in parallel in a memory efficient and scaleable manner. To make this work we need to write the data to disk in a suitable format: netCDF files, then load those files as an <code>xarray.Dataset</code>. This functionality is implemented in <a href="https://bamford.github.io/qagmire/data.html#fitstodataset"><code>FITStoDataset</code></a>, which is used to wrap simpler functions which focus on reading data from a single FITS file into a convenient <code>Dataset</code>. Reading the original FITS files, and caching them to NetCDF, is (by default) parallelised using <code>multiprocessing</code>. In general, the aim is for the resulting <code>Dataset</code>s to preserve the structure in the FITS files. However, there are some cases where it is sensible to rearrange the data into a more convenient and/or efficient format.</p>
+<p>To help with accessing the data, we define several “coordinates”. The fundamental one is <code>filename</code>. <code>RUN</code> is unique for each <code>filename</code> and, like <code>OBID</code>, <code>CAMERA</code> and <code>MJD</code>, is taken directly from the header, where available. <code>NIGHT</code> is the date, in YYYYMMDD format, at the start of the night in which the observation was taken.</p>
+<hr>
+<p><a href="https://github.com/bamford/qagmire/blob/main/qagmire/data.py#L92" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fitstodataset" class="level3">
+<h3 class="anchored" data-anchor-id="fitstodataset">FITStoDataset</h3>
+<blockquote class="blockquote">
+<pre><code> FITStoDataset (cache=True, netcdf_store:str|None=None, progress=True,
+                update_cache=False, n_processes=8)</code></pre>
+</blockquote>
+<p>Access multiple FITS tables as an xarray Dataset, optionally via cached netCDF files.</p>
+<p>For each FITS table or image we wish to read, we will write a <code>read_*(fn)</code> function which reads the table from the single provided filename <code>fn</code> and returns a <code>Dataset</code>. Wrapping such a function with an instance of this class adapts the function to take a list of FITS filenames and return a <code>Dataset</code>. If <code>cache=True</code>, the Dataset is lazily loaded data from a cache of netCDF files. The cache is stored in the <code>netcdf_store</code> folder defined when the instance is initialised.</p>
+<p>If <code>cache=True</code>, when the wrapped function is initially run, it repeatedly calls <code>single_via_netcdf</code> to apply the original <code>read_*</code> function to each FITS filename and save each resulting <code>Dataset</code> as a netCDF file, then opens them together and returns a combined, distributed <code>Dataset</code>. If a previously converted file is found in the <code>netcdf_store</code>, then the original <code>read_*</code> function is skipped and the netCDF file loaded directly. This caching can vastly increase the speed of subsequent calls. If <code>n_processes &gt; 1</code>, which it is by default, then this reading and caching is performed in parallel using <code>n_processes</code> processes.</p>
+<p>Although instances of this class can be used as a decorator, doing so with <code>n_processes &gt; 1</code> will lead to an exception due to pickling issues with multiprocessing. Instead they should be used to wrap functions, without replacing the original function name. For example,</p>
+<pre><code>to_dataset = FITStoDataset()
+
+def _class_spec_reader(fn):
+    ...
+
+read_class_spec = to_dataset(_class_spec_reader)</code></pre>
+<p>If a source FITS file is changed, the corresponding files in <code>netcdf_store</code> can simply be deleted and they will be recreated on the next call of the decorated <code>read_*</code> function.</p>
+<p>If <code>cache=False</code>, then the data is always read from the specified FITS files, combined and returned as an in-memory Dataset. This may be faster when dealing with lots of small files.</p>
+<p>If <code>update_cache=False</code>, then existing cache files are not read, but are recreated.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>cache</td>
+<td>bool</td>
+<td>True</td>
+<td>cache the dataset to netCDF files</td>
+</tr>
+<tr class="even">
+<td>netcdf_store</td>
+<td>str | None</td>
+<td>None</td>
+<td>folder in which to store the netCDF files</td>
+</tr>
+<tr class="odd">
+<td>progress</td>
+<td>bool</td>
+<td>True</td>
+<td>display a progress bar</td>
+</tr>
+<tr class="even">
+<td>update_cache</td>
+<td>bool</td>
+<td>False</td>
+<td>read FITS files and recreate netCDF files, no effect if cache=False</td>
+</tr>
+<tr class="odd">
+<td>n_processes</td>
+<td>int</td>
+<td>8</td>
+<td>how many subprocesses to use</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="create-the-to_dataset-and-to_dataset_without_cache-wrapping-functions" class="level3">
+<h3 class="anchored" data-anchor-id="create-the-to_dataset-and-to_dataset_without_cache-wrapping-functions">Create the <code>to_dataset</code> and <code>to_dataset_without_cache</code> wrapping functions</h3>
+<p>These are used to wrap all the <code>read_*</code> functions defined below. The function <code>to_dataset</code> is an instance of <a href="https://bamford.github.io/qagmire/data.html#fitstodataset"><code>FITStoDataset</code></a> with all the default behaviour described above.</p>
+<p>For datasets consisting of small amounts of data per FITS file, it appears to be more efficient to simply read from the FITS files every time. In such cases, we use <code>to_dataset_without_cache</code>, an instance of <a href="https://bamford.github.io/qagmire/data.html#fitstodataset"><code>FITStoDataset</code></a> with caching disabled.</p>
+<p>Note that both of must be used to wrap functions, with the result being assigned a different name to the original. They cannot be used as decorators, unless <code>n_processes=1</code>.</p>
+<div id="b38dd71c-4eca-4d0a-9f02-045c5b2b8433" class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>to_dataset <span class="op">=</span> FITStoDataset()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>to_dataset_without_cache <span class="op">=</span> FITStoDataset(cache<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Existing cache files will be used when using the <code>qagmire.data</code> module. However, if running this notebook, the following line means we always update the cache, such that the timings reflect the original reading and conversion process.</p>
+<div id="8a0b3794-942a-45a5-949a-9ddd36b106ef" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>to_dataset <span class="op">=</span> FITStoDataset(update_cache<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="locating-weave-fits-files" class="level2">
+<h2 class="anchored" data-anchor-id="locating-weave-fits-files">Locating WEAVE FITS files</h2>
+<p>Here we define some functions to get lists of WEAVE FITS filenames.</p>
+<hr>
+<p><a href="https://github.com/bamford/qagmire/blob/main/qagmire/data.py#L304" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="get_lr_l2_stack_files" class="level3">
+<h3 class="anchored" data-anchor-id="get_lr_l2_stack_files">get_lr_l2_stack_files</h3>
+<blockquote class="blockquote">
+<pre><code> get_lr_l2_stack_files (date='*', runid='*', folder='weaveio')</code></pre>
+</blockquote>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>date</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the date in format yyyymmdd</td>
+</tr>
+<tr class="even">
+<td>runid</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the runid</td>
+</tr>
+<tr class="odd">
+<td>folder</td>
+<td>str</td>
+<td>weaveio</td>
+<td>folder within the <code>data_path</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/bamford/qagmire/blob/main/qagmire/data.py#L294" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="get_lr_l1_stack_files" class="level3">
+<h3 class="anchored" data-anchor-id="get_lr_l1_stack_files">get_lr_l1_stack_files</h3>
+<blockquote class="blockquote">
+<pre><code> get_lr_l1_stack_files (date='*', runid='*', folder='weaveio')</code></pre>
+</blockquote>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>date</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the date in format yyyymmdd</td>
+</tr>
+<tr class="even">
+<td>runid</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the runid</td>
+</tr>
+<tr class="odd">
+<td>folder</td>
+<td>str</td>
+<td>weaveio</td>
+<td>folder within the <code>data_path</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/bamford/qagmire/blob/main/qagmire/data.py#L279" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="get_lr_l1_single_files" class="level3">
+<h3 class="anchored" data-anchor-id="get_lr_l1_single_files">get_lr_l1_single_files</h3>
+<blockquote class="blockquote">
+<pre><code> get_lr_l1_single_files (date='*', runid='*', folder='weaveio')</code></pre>
+</blockquote>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>date</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the date in format yyyymmdd</td>
+</tr>
+<tr class="even">
+<td>runid</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the runid</td>
+</tr>
+<tr class="odd">
+<td>folder</td>
+<td>str</td>
+<td>weaveio</td>
+<td>folder within the <code>data_path</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/bamford/qagmire/blob/main/qagmire/data.py#L269" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="get_lr_raw_files" class="level3">
+<h3 class="anchored" data-anchor-id="get_lr_raw_files">get_lr_raw_files</h3>
+<blockquote class="blockquote">
+<pre><code> get_lr_raw_files (date='*', runid='*', folder='weaveio')</code></pre>
+</blockquote>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>date</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the date in format yyyymmdd</td>
+</tr>
+<tr class="even">
+<td>runid</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the runid</td>
+</tr>
+<tr class="odd">
+<td>folder</td>
+<td>str</td>
+<td>weaveio</td>
+<td>folder within the <code>data_path</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/bamford/qagmire/blob/main/qagmire/data.py#L246" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="get_weave_files" class="level3">
+<h3 class="anchored" data-anchor-id="get_weave_files">get_weave_files</h3>
+<blockquote class="blockquote">
+<pre><code> get_weave_files (level='*', filetype='*', date='*', runid='*',
+                  lowres=True, folder='weaveio')</code></pre>
+</blockquote>
+<p>Get a list of matching WEAVE files.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>level</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the file level, e.g.&nbsp;raw, L1, L2</td>
+</tr>
+<tr class="even">
+<td>filetype</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the file type, e.g.&nbsp;single, stack</td>
+</tr>
+<tr class="odd">
+<td>date</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the date in format yyyymmdd</td>
+</tr>
+<tr class="even">
+<td>runid</td>
+<td>str</td>
+<td>*</td>
+<td>pattern to match to the runid</td>
+</tr>
+<tr class="odd">
+<td>lowres</td>
+<td>bool</td>
+<td>True</td>
+<td>select low-res files, or high-res if False</td>
+</tr>
+<tr class="even">
+<td>folder</td>
+<td>str</td>
+<td>weaveio</td>
+<td>folder within the <code>data_path</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="raw-files" class="level2">
+<h2 class="anchored" data-anchor-id="raw-files">Raw files</h2>
+<p>These contain the raw observations.</p>
+<p>We will read some simulated files to show examples.</p>
+<div id="01681c4f-2fbe-4490-a080-aaff543eae0c" class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>lr_raw_files <span class="op">=</span> get_lr_raw_files(date<span class="op">=</span><span class="st">"2017*"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(lr_raw_files), <span class="st">"low-res raw files"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>120 low-res raw files</code></pre>
+</div>
+</div>
+<div id="43c89000-1e8c-4a18-ba7d-37bced2c3451" class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>raw_hdus <span class="op">=</span> fits.<span class="bu">open</span>(lr_raw_files[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>WEAVE raw files contain six extensions:</p>
+<div id="6603c814-234c-46d8-a6f6-58d95f3351a5" class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>([hdu.name <span class="cf">for</span> hdu <span class="kw">in</span> raw_hdus])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['PRIMARY', 'RED1_DATA', 'RED2_DATA', 'FIBTABLE', 'GUIDINFO', 'METINFO']</code></pre>
+</div>
+</div>
+<section id="primary" class="level3">
+<h3 class="anchored" data-anchor-id="primary">PRIMARY</h3>
+<p>The PRIMARY extension contains only a header with lots of information about the observation.</p>
+<div id="a904b4dc-2709-4fb2-81be-176c1b225c3e" class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>raw_hdus[<span class="st">"PRIMARY"</span>].header[:<span class="dv">15</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>SIMPLE  =                    T / conforms to FITS standard                      
+BITPIX  =                    8 / array data type                                
+NAXIS   =                    0 / number of array dimensions                     
+EXTEND  =                    T                                                  
+COMMENT -------- Start of the CAMERA Packet -------                             
+RUN     =              1003313                                                  
+IRAFNAME= 'r1003313'           / redir r2840373.fit &gt; r1003313                  
+DETECTOR= 'WVRED   '           / Selected by inference                          
+CCDSPEED= 'SLOW    '                                                            
+CCDXBIN =                    1                                                  
+CCDYBIN =                    1                                                  
+CCDSUM  = '1 1     '                                                            
+CCDTEMP =    132.0555378866794 / Randomly generated                             
+CCDTEMP1=    124.5350077054515 / Randomly generated                             
+CCDTEMP2=    127.1948417375027 / Randomly generated                             </code></pre>
+</div>
+</div>
+<div id="8328b401-4e20-4362-a5bc-a308ee723a0f" class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>raw_primary_header <span class="op">=</span> read_primary_header(lr_raw_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading files:   0%|                                                                                                               | 0/120 [00:00&lt;?, ?it/s]Reading files:   2%|█▋                                                                                                     | 2/120 [00:00&lt;00:06, 18.91it/s]Reading files:   9%|█████████▎                                                                                            | 11/120 [00:00&lt;00:01, 59.64it/s]Reading files:  19%|███████████████████▌                                                                                  | 23/120 [00:00&lt;00:01, 86.42it/s]Reading files:  32%|███████████████████████████████▉                                                                     | 38/120 [00:00&lt;00:00, 108.16it/s]Reading files:  42%|██████████████████████████████████████████▉                                                          | 51/120 [00:00&lt;00:00, 111.96it/s]Reading files:  53%|█████████████████████████████████████████████████████▊                                               | 64/120 [00:00&lt;00:00, 117.83it/s]Reading files:  64%|████████████████████████████████████████████████████████████████▊                                    | 77/120 [00:00&lt;00:00, 114.52it/s]Reading files:  76%|████████████████████████████████████████████████████████████████████████████▌                        | 91/120 [00:00&lt;00:00, 119.89it/s]Reading files:  88%|████████████████████████████████████████████████████████████████████████████████████████▎           | 106/120 [00:00&lt;00:00, 128.31it/s]Reading files:  99%|████████████████████████████████████████████████████████████████████████████████████████████████████▏| 119/120 [00:01&lt;00:00, 99.60it/s]Reading files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:01&lt;00:00, 104.08it/s]
+Creating Dataset... took 1.53 s. Size is 0.604 Mb</code></pre>
+</div>
+</div>
+<div id="d794c588-c1ca-4132-8a8c-0c0840106c61" class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(raw_primary_header)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 633kB
+Dimensions:   (filename: 120)
+Coordinates:
+  * filename  (filename) object 960B 'r1003313' 'r1003314' ... 'r1004150'
+    RUN       (filename) int64 960B 1003313 1003314 1003317 ... 1004151 1004150
+    CAMERA    (filename) &lt;U4 2kB 'RED' 'BLUE' 'RED' ... 'BLUE' 'RED' 'BLUE'
+    OBID      (filename) int64 960B 3802 3802 3802 3802 ... 3936 3936 3936 3936
+    MJD       (filename) float64 960B 5.781e+04 5.781e+04 ... 5.803e+04
+    NIGHT     (filename) &lt;U8 4kB '20170224' '20170224' ... '20170930' '20170930'
+Data variables: (12/410)
+    SIMPLE    (filename) bool 120B True True True True ... True True True True
+    BITPIX    (filename) int64 960B 8 8 8 8 8 8 8 8 8 8 ... 8 8 8 8 8 8 8 8 8 8
+    NAXIS     (filename) int64 960B 0 0 0 0 0 0 0 0 0 0 ... 0 0 0 0 0 0 0 0 0 0
+    EXTEND    (filename) bool 120B True True True True ... True True True True
+    IRAFNAME  (filename) &lt;U8 4kB 'r1003313' 'r1003314' ... 'r1004151' 'r1004150'
+    DETECTOR  (filename) &lt;U6 3kB 'WVRED' 'WVBLUE' 'WVRED' ... 'WVRED' 'WVBLUE'
+    ...        ...
+    CCNAME17  (filename) &lt;U1 480B '' '' '' '' '' '' '' ... '' '' '' '' '' '' ''
+    CCNAME18  (filename) &lt;U1 480B '' '' '' '' '' '' '' ... '' '' '' '' '' '' ''
+    CCNAME19  (filename) &lt;U1 480B '' '' '' '' '' '' '' ... '' '' '' '' '' '' ''
+    CCNAME20  (filename) &lt;U1 480B '' '' '' '' '' '' '' ... '' '' '' '' '' '' ''
+    CHECKSUM  (filename) &lt;U16 8kB '6Zki8Wkh6Wkh6Wkh' ... 'nXIAqWF5nWFAnWF5'
+    DATASUM   (filename) &lt;U10 5kB '         0' '         0' ... '         0'</code></pre>
+</div>
+</div>
+</section>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">DATA</h3>
+<p>The RED1_DATA, RED2_DATA and BLUE1_DATA, BLUE2_DATA extensions contain raw imaging of the spectra.</p>
+<div id="13869ece-0c9f-46ee-acb5-bca7f75c1989" class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>raw_data <span class="op">=</span> read_raw_data(lr_raw_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                     | 0/120 [00:00&lt;?, ?it/s]Locating and converting where necessary:   1%|▋                                                                            | 1/120 [00:02&lt;04:36,  2.32s/it]Locating and converting where necessary:   4%|███▏                                                                         | 5/120 [00:02&lt;00:42,  2.70it/s]Locating and converting where necessary:   7%|█████▏                                                                       | 8/120 [00:03&lt;00:33,  3.39it/s]Locating and converting where necessary:   8%|██████▎                                                                     | 10/120 [00:04&lt;00:41,  2.66it/s]Locating and converting where necessary:  11%|████████▏                                                                   | 13/120 [00:04&lt;00:27,  3.94it/s]Locating and converting where necessary:  12%|█████████▌                                                                  | 15/120 [00:04&lt;00:25,  4.14it/s]Locating and converting where necessary:  13%|██████████▏                                                                 | 16/120 [00:05&lt;00:24,  4.29it/s]Locating and converting where necessary:  14%|██████████▊                                                                 | 17/120 [00:05&lt;00:26,  3.91it/s]Locating and converting where necessary:  15%|███████████▍                                                                | 18/120 [00:05&lt;00:30,  3.37it/s]Locating and converting where necessary:  16%|████████████                                                                | 19/120 [00:05&lt;00:26,  3.85it/s]Locating and converting where necessary:  18%|█████████████▎                                                              | 21/120 [00:06&lt;00:20,  4.79it/s]Locating and converting where necessary:  18%|█████████████▉                                                              | 22/120 [00:06&lt;00:18,  5.31it/s]Locating and converting where necessary:  19%|██████████████▌                                                             | 23/120 [00:06&lt;00:19,  4.90it/s]Locating and converting where necessary:  20%|███████████████▏                                                            | 24/120 [00:07&lt;00:29,  3.26it/s]Locating and converting where necessary:  22%|████████████████▍                                                           | 26/120 [00:07&lt;00:22,  4.12it/s]Locating and converting where necessary:  22%|█████████████████                                                           | 27/120 [00:07&lt;00:21,  4.24it/s]Locating and converting where necessary:  24%|██████████████████▎                                                         | 29/120 [00:08&lt;00:19,  4.70it/s]Locating and converting where necessary:  25%|███████████████████                                                         | 30/120 [00:08&lt;00:18,  4.93it/s]Locating and converting where necessary:  26%|███████████████████▋                                                        | 31/120 [00:08&lt;00:18,  4.92it/s]Locating and converting where necessary:  27%|████████████████████▎                                                       | 32/120 [00:08&lt;00:22,  3.93it/s]Locating and converting where necessary:  28%|█████████████████████▌                                                      | 34/120 [00:09&lt;00:21,  4.07it/s]Locating and converting where necessary:  30%|██████████████████████▊                                                     | 36/120 [00:09&lt;00:16,  5.20it/s]Locating and converting where necessary:  31%|███████████████████████▍                                                    | 37/120 [00:09&lt;00:19,  4.32it/s]Locating and converting where necessary:  32%|████████████████████████▋                                                   | 39/120 [00:10&lt;00:16,  4.98it/s]Locating and converting where necessary:  33%|█████████████████████████▎                                                  | 40/120 [00:10&lt;00:23,  3.45it/s]Locating and converting where necessary:  35%|██████████████████████████▌                                                 | 42/120 [00:11&lt;00:19,  4.07it/s]Locating and converting where necessary:  37%|███████████████████████████▊                                                | 44/120 [00:11&lt;00:13,  5.62it/s]Locating and converting where necessary:  38%|████████████████████████████▌                                               | 45/120 [00:11&lt;00:17,  4.35it/s]Locating and converting where necessary:  38%|█████████████████████████████▏                                              | 46/120 [00:11&lt;00:15,  4.88it/s]Locating and converting where necessary:  39%|█████████████████████████████▊                                              | 47/120 [00:11&lt;00:13,  5.31it/s]Locating and converting where necessary:  40%|██████████████████████████████▍                                             | 48/120 [00:12&lt;00:20,  3.59it/s]Locating and converting where necessary:  41%|███████████████████████████████                                             | 49/120 [00:13&lt;00:24,  2.88it/s]Locating and converting where necessary:  42%|███████████████████████████████▋                                            | 50/120 [00:13&lt;00:21,  3.33it/s]Locating and converting where necessary:  44%|█████████████████████████████████▌                                          | 53/120 [00:13&lt;00:12,  5.50it/s]Locating and converting where necessary:  45%|██████████████████████████████████▏                                         | 54/120 [00:13&lt;00:11,  5.63it/s]Locating and converting where necessary:  46%|██████████████████████████████████▊                                         | 55/120 [00:13&lt;00:11,  5.69it/s]Locating and converting where necessary:  47%|███████████████████████████████████▍                                        | 56/120 [00:14&lt;00:16,  4.00it/s]Locating and converting where necessary:  48%|████████████████████████████████████                                        | 57/120 [00:14&lt;00:20,  3.07it/s]Locating and converting where necessary:  48%|████████████████████████████████████▋                                       | 58/120 [00:14&lt;00:17,  3.60it/s]Locating and converting where necessary:  49%|█████████████████████████████████████▎                                      | 59/120 [00:15&lt;00:16,  3.59it/s]Locating and converting where necessary:  50%|██████████████████████████████████████                                      | 60/120 [00:15&lt;00:13,  4.35it/s]Locating and converting where necessary:  52%|███████████████████████████████████████▉                                    | 63/120 [00:15&lt;00:06,  8.14it/s]Locating and converting where necessary:  54%|█████████████████████████████████████████▏                                  | 65/120 [00:16&lt;00:15,  3.62it/s]Locating and converting where necessary:  55%|█████████████████████████████████████████▊                                  | 66/120 [00:16&lt;00:13,  4.09it/s]Locating and converting where necessary:  56%|██████████████████████████████████████████▍                                 | 67/120 [00:16&lt;00:13,  3.95it/s]Locating and converting where necessary:  57%|███████████████████████████████████████████▋                                | 69/120 [00:17&lt;00:09,  5.55it/s]Locating and converting where necessary:  60%|█████████████████████████████████████████████▌                              | 72/120 [00:17&lt;00:10,  4.58it/s]Locating and converting where necessary:  61%|██████████████████████████████████████████████▏                             | 73/120 [00:18&lt;00:14,  3.31it/s]Locating and converting where necessary:  62%|██████████████████████████████████████████████▊                             | 74/120 [00:18&lt;00:12,  3.75it/s]Locating and converting where necessary:  62%|███████████████████████████████████████████████▌                            | 75/120 [00:19&lt;00:12,  3.64it/s]Locating and converting where necessary:  65%|█████████████████████████████████████████████████▍                          | 78/120 [00:19&lt;00:06,  6.18it/s]Locating and converting where necessary:  67%|██████████████████████████████████████████████████▋                         | 80/120 [00:19&lt;00:07,  5.36it/s]Locating and converting where necessary:  68%|███████████████████████████████████████████████████▎                        | 81/120 [00:20&lt;00:10,  3.73it/s]Locating and converting where necessary:  68%|███████████████████████████████████████████████████▉                        | 82/120 [00:20&lt;00:10,  3.52it/s]Locating and converting where necessary:  69%|████████████████████████████████████████████████████▌                       | 83/120 [00:20&lt;00:09,  3.81it/s]Locating and converting where necessary:  72%|██████████████████████████████████████████████████████▍                     | 86/120 [00:21&lt;00:05,  5.89it/s]Locating and converting where necessary:  73%|███████████████████████████████████████████████████████▋                    | 88/120 [00:21&lt;00:07,  4.38it/s]Locating and converting where necessary:  75%|█████████████████████████████████████████████████████████                   | 90/120 [00:22&lt;00:08,  3.44it/s]Locating and converting where necessary:  76%|█████████████████████████████████████████████████████████▋                  | 91/120 [00:22&lt;00:07,  3.81it/s]Locating and converting where necessary:  77%|██████████████████████████████████████████████████████████▎                 | 92/120 [00:22&lt;00:06,  4.22it/s]Locating and converting where necessary:  78%|███████████████████████████████████████████████████████████▌                | 94/120 [00:23&lt;00:05,  4.53it/s]Locating and converting where necessary:  80%|████████████████████████████████████████████████████████████▊               | 96/120 [00:23&lt;00:05,  4.61it/s]Locating and converting where necessary:  81%|█████████████████████████████████████████████████████████████▍              | 97/120 [00:23&lt;00:04,  4.68it/s]Locating and converting where necessary:  82%|██████████████████████████████████████████████████████████████              | 98/120 [00:24&lt;00:06,  3.67it/s]Locating and converting where necessary:  82%|██████████████████████████████████████████████████████████████▋             | 99/120 [00:24&lt;00:04,  4.26it/s]Locating and converting where necessary:  85%|███████████████████████████████████████████████████████████████▊           | 102/120 [00:24&lt;00:03,  5.41it/s]Locating and converting where necessary:  86%|████████████████████████████████████████████████████████████████▍          | 103/120 [00:25&lt;00:03,  5.45it/s]Locating and converting where necessary:  87%|█████████████████████████████████████████████████████████████████          | 104/120 [00:25&lt;00:03,  4.16it/s]Locating and converting where necessary:  88%|█████████████████████████████████████████████████████████████████▋         | 105/120 [00:25&lt;00:03,  4.56it/s]Locating and converting where necessary:  88%|██████████████████████████████████████████████████████████████████▎        | 106/120 [00:26&lt;00:03,  3.66it/s]Locating and converting where necessary:  89%|██████████████████████████████████████████████████████████████████▉        | 107/120 [00:26&lt;00:03,  4.14it/s]Locating and converting where necessary:  91%|████████████████████████████████████████████████████████████████████▏      | 109/120 [00:26&lt;00:01,  6.07it/s]Locating and converting where necessary:  92%|████████████████████████████████████████████████████████████████████▊      | 110/120 [00:26&lt;00:02,  4.93it/s]Locating and converting where necessary:  92%|█████████████████████████████████████████████████████████████████████▍     | 111/120 [00:26&lt;00:01,  5.22it/s]Locating and converting where necessary:  93%|██████████████████████████████████████████████████████████████████████     | 112/120 [00:27&lt;00:01,  4.13it/s]Locating and converting where necessary:  94%|██████████████████████████████████████████████████████████████████████▋    | 113/120 [00:27&lt;00:01,  4.85it/s]Locating and converting where necessary:  95%|███████████████████████████████████████████████████████████████████████▎   | 114/120 [00:27&lt;00:01,  4.01it/s]Locating and converting where necessary:  96%|███████████████████████████████████████████████████████████████████████▉   | 115/120 [00:28&lt;00:01,  3.58it/s]Locating and converting where necessary:  98%|█████████████████████████████████████████████████████████████████████████▊ | 118/120 [00:28&lt;00:00,  4.25it/s]Locating and converting where necessary:  99%|██████████████████████████████████████████████████████████████████████████▍| 119/120 [00:29&lt;00:00,  3.52it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████| 120/120 [00:30&lt;00:00,  2.11it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████| 120/120 [00:30&lt;00:00,  3.97it/s]
+Reading netCDF files... took 3.42 s. Size is 17888.977 Mb</code></pre>
+</div>
+</div>
+<div id="2822a5ba-a41b-4937-b6e9-bd1a7ed984b1" class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(raw_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 19GB
+Dimensions:   (filename: 120, dim_0: 6160, dim_1: 6344)
+Coordinates:
+  * filename  (filename) &lt;U8 4kB 'r1003314' 'r1003319' ... 'r1004152' 'r1004151'
+    RUN       (filename) int64 960B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    CAMERA    (filename) &lt;U4 2kB dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    MJD       (filename) float64 960B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    NIGHT     (filename) &lt;U8 4kB dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    OBID      (filename) int64 960B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Dimensions without coordinates: dim_0, dim_1
+Data variables:
+    counts1   (filename, dim_0, dim_1) uint16 9GB dask.array&lt;chunksize=(1, 6160, 6344), meta=np.ndarray&gt;
+    counts2   (filename, dim_0, dim_1) uint16 9GB dask.array&lt;chunksize=(1, 6160, 6344), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<p>It is a good idea to close a <code>Dataset</code> when you are finished with it, as otherwise other processes may not be able to access the same underlying files.</p>
+<div id="9d2e277d-7364-4ccd-ad26-8d3f675bd586" class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>raw_data.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="fibtable" class="level3">
+<h3 class="anchored" data-anchor-id="fibtable">FIBTABLE</h3>
+<p>The FIBTABLE extension contains information about the fibre allocations.</p>
+<p>Code is included to display example content of FITS tables, but commented out as it does not display well online.</p>
+<div id="8b56c058-4c3c-4cde-a3d3-94a17bb87c0a" class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(raw_hdus["FIBTABLE"])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="586594e2-4d40-43fc-b79d-3e707d4a0fd7" class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>raw_fibre_table <span class="op">=</span> read_fibre_table(lr_raw_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading files:   0%|                                                                                                               | 0/120 [00:00&lt;?, ?it/s]Reading files:   1%|▊                                                                                                      | 1/120 [00:00&lt;00:18,  6.53it/s]Reading files:   9%|█████████▎                                                                                            | 11/120 [00:00&lt;00:02, 51.12it/s]Reading files:  17%|█████████████████                                                                                     | 20/120 [00:00&lt;00:01, 66.77it/s]Reading files:  27%|███████████████████████████▏                                                                          | 32/120 [00:00&lt;00:01, 82.79it/s]Reading files:  34%|██████████████████████████████████▊                                                                   | 41/120 [00:00&lt;00:00, 83.31it/s]Reading files:  44%|█████████████████████████████████████████████                                                         | 53/120 [00:00&lt;00:00, 93.29it/s]Reading files:  52%|█████████████████████████████████████████████████████▌                                                | 63/120 [00:00&lt;00:00, 85.78it/s]Reading files:  61%|██████████████████████████████████████████████████████████████                                        | 73/120 [00:00&lt;00:00, 88.48it/s]Reading files:  69%|██████████████████████████████████████████████████████████████████████▌                               | 83/120 [00:01&lt;00:00, 89.89it/s]Reading files:  78%|███████████████████████████████████████████████████████████████████████████████                       | 93/120 [00:01&lt;00:00, 60.01it/s]Reading files:  86%|██████████████████████████████████████████████████████████████████████████████████████▋              | 103/120 [00:01&lt;00:00, 65.18it/s]Reading files:  98%|██████████████████████████████████████████████████████████████████████████████████████████████████▍  | 117/120 [00:01&lt;00:00, 81.74it/s]Reading files: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:01&lt;00:00, 74.99it/s]
+Creating Dataset... took 0.74 s. Size is 22.621 Mb</code></pre>
+</div>
+</div>
+<div id="e35bc324-b67e-4fd9-846a-702d14830dd1" class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(raw_fibre_table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 24MB
+Dimensions:    (APS_ID: 1008, filename: 120)
+Coordinates:
+  * APS_ID     (APS_ID) int16 2kB 0 1 2 3 4 5 ... 1002 1003 1004 1005 1006 1007
+  * filename   (filename) object 960B 'r1003316' 'r1003318' ... 'r1004151'
+    RUN        (filename) int64 960B 1003316 1003318 1003313 ... 1004152 1004151
+    CAMERA     (filename) &lt;U4 2kB 'BLUE' 'BLUE' 'RED' ... 'BLUE' 'BLUE' 'RED'
+    MJD        (filename) float64 960B 5.781e+04 5.781e+04 ... 5.803e+04
+    NIGHT      (filename) &lt;U8 4kB '20170224' '20170224' ... '20170930'
+    OBID       (filename) int64 960B 3802 3802 3802 3802 ... 3936 3936 3936 3936
+Data variables: (12/36)
+    CNAME      (filename, APS_ID) object 968kB nan nan nan nan ... nan nan nan
+    FIBRERA    (filename, APS_ID) float64 968kB nan nan nan nan ... nan nan nan
+    FIBREDEC   (filename, APS_ID) float64 968kB nan nan nan nan ... nan nan nan
+    XPOSITION  (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    YPOSITION  (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    STATUS     (filename, APS_ID) object 968kB nan nan nan nan ... nan nan nan
+    ...         ...
+    MAG_GG     (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    EMAG_GG    (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    MAG_BP     (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    EMAG_BP    (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    MAG_RP     (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan
+    EMAG_RP    (filename, APS_ID) float32 484kB nan nan nan nan ... nan nan nan</code></pre>
+</div>
+</div>
+</section>
+<section id="guidinfo" class="level3">
+<h3 class="anchored" data-anchor-id="guidinfo">GUIDINFO</h3>
+<p>The GUIDINFO extension contains info about the guiding. Currently not sure of the best way to organise this data.</p>
+<div id="d6e19840-e0c6-4900-be75-52325cb1e260" class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(raw_hdus["GUIDINFO"])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="metinfo" class="level3">
+<h3 class="anchored" data-anchor-id="metinfo">METINFO</h3>
+<p>The METINFO extension contains meteographical information. Currently not sure of the best way to organise this data.</p>
+<div id="d8b12054-d3d9-4b2f-997a-66fe87c23c67" class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(raw_hdus["METINFO"], unit_parse_strict="silent")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="l1-files" class="level2">
+<h2 class="anchored" data-anchor-id="l1-files">L1 files</h2>
+<p>These contain lower-level processed data products. There are <code>single</code> files, which contain info for a single exposure, and <code>stack</code> files, which contain the same info for stacked exposures.</p>
+<p>We will read some simulated single files to show examples.</p>
+<div id="2a08c111-e1d2-4008-adbb-7545c22070b7" class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>lr_l1_single_files <span class="op">=</span> get_lr_l1_single_files(date<span class="op">=</span><span class="st">"2017*"</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(lr_l1_single_files), <span class="st">"low-res L1 single files"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>60 low-res L1 single files</code></pre>
+</div>
+</div>
+<div id="12c2def5-d446-44f6-bc91-6a7c3850c790" class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>l1_hdus <span class="op">=</span> fits.<span class="bu">open</span>(lr_l1_single_files[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>WEAVE L1 single files contain seven extensions:</p>
+<div id="c7a3ff51-6770-4bd9-bf3a-6896aca06fd6" class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>([hdu.name <span class="cf">for</span> hdu <span class="kw">in</span> l1_hdus])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['PRIMARY', 'RED_DATA', 'RED_IVAR', 'RED_DATA_NOSS', 'RED_IVAR_NOSS', 'RED_SENSFUNC', 'FIBTABLE']</code></pre>
+</div>
+</div>
+<section id="primary-1" class="level3">
+<h3 class="anchored" data-anchor-id="primary-1">PRIMARY</h3>
+<p>The PRIMARY extension contains only a header with lots of information about the observation.</p>
+<div id="42dbfee3-a087-4899-ad2e-7e54828f7e35" class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>l1_hdus[<span class="st">"PRIMARY"</span>].header[:<span class="dv">15</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>SIMPLE  =                    T / file does conform to FITS standard             
+BITPIX  =                    8 / number of bits per data pixel                  
+NAXIS   =                    0 / number of data axes                            
+EXTEND  =                    T / FITS dataset may contain extensions            
+COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy
+COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&amp;A...376..359H 
+COMMENT -------- Start of the CAMERA Packet -------                             
+RUN     =              1003317                                                  
+IRAFNAME= 'r1003317'           / redir r2840376.fit &gt; r1003317                  
+DETECTOR= 'WVRED   '           / Selected by inference                          
+CCDSPEED= 'SLOW    '                                                            
+CCDXBIN =                    1                                                  
+CCDYBIN =                    1                                                  
+CCDSUM  = '1 1     '                                                            
+CCDTEMP =    180.2992022070757 / Randomly generated                             </code></pre>
+</div>
+</div>
+<div id="b9ff773a-a8ef-4313-b945-b720e2ffc573" class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>l1_primary_header <span class="op">=</span> read_primary_header(lr_l1_single_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading files:   0%|                                                                                                                | 0/60 [00:00&lt;?, ?it/s]Reading files:   2%|█▋                                                                                                      | 1/60 [00:00&lt;00:07,  8.32it/s]Reading files:  18%|██████████████████▉                                                                                    | 11/60 [00:00&lt;00:00, 54.18it/s]Reading files:  42%|██████████████████████████████████████████▉                                                            | 25/60 [00:00&lt;00:00, 88.79it/s]Reading files:  58%|████████████████████████████████████████████████████████████                                           | 35/60 [00:00&lt;00:00, 54.47it/s]Reading files:  70%|████████████████████████████████████████████████████████████████████████                               | 42/60 [00:00&lt;00:00, 55.52it/s]Reading files:  93%|████████████████████████████████████████████████████████████████████████████████████████████████▏      | 56/60 [00:00&lt;00:00, 71.21it/s]Reading files: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 60/60 [00:00&lt;00:00, 66.01it/s]
+Creating Dataset... took 1.04 s. Size is 0.379 Mb</code></pre>
+</div>
+</div>
+<div id="de6060dd-58ab-4934-b263-41e0f064237a" class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(l1_primary_header)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 397kB
+Dimensions:   (filename: 60)
+Coordinates:
+  * filename  (filename) object 480B 'single_1003320' ... 'single_1004149'
+    RUN       (filename) int64 480B 1003320 1003318 1003317 ... 1004150 1004149
+    CAMERA    (filename) &lt;U4 960B 'BLUE' 'BLUE' 'RED' ... 'BLUE' 'BLUE' 'RED'
+    OBID      (filename) int64 480B 3802 3802 3802 3802 ... 3936 3936 3936 3936
+    MJD       (filename) float64 480B 5.781e+04 5.781e+04 ... 5.803e+04
+    NIGHT     (filename) &lt;U8 2kB '20170224' '20170224' ... '20170930' '20170930'
+Data variables: (12/447)
+    SIMPLE    (filename) bool 60B True True True True ... True True True True
+    BITPIX    (filename) int64 480B 8 8 8 8 8 8 8 8 8 8 ... 8 8 8 8 8 8 8 8 8 8
+    NAXIS     (filename) int64 480B 0 0 0 0 0 0 0 0 0 0 ... 0 0 0 0 0 0 0 0 0 0
+    EXTEND    (filename) bool 60B True True True True ... True True True True
+    IRAFNAME  (filename) &lt;U8 2kB 'r1003320' 'r1003318' ... 'r1004150' 'r1004149'
+    DETECTOR  (filename) &lt;U6 1kB 'WVBLUE' 'WVBLUE' 'WVRED' ... 'WVBLUE' 'WVRED'
+    ...        ...
+    NCOMB     (filename) int64 480B 1 1 1 1 1 1 1 1 1 1 ... 1 1 1 1 1 1 1 1 1 1
+    PROV0000  (filename) &lt;U18 4kB 'single_1003320.fit' ... 'single_1004149.fit'
+    CHECKSUM  (filename) &lt;U16 4kB 'VEl6WDj6VDj6VDj6' ... 'cbhAeaZ6cafAcaZ3'
+    DATASUM   (filename) &lt;U1 240B '0' '0' '0' '0' '0' ... '0' '0' '0' '0' '0'
+    DELZPGRA  (filename) float64 480B 0.0 0.0 0.0 0.0 0.0 ... 0.0 0.0 0.0 0.0
+    CALDATE   (filename) int64 480B 20161225 20161225 ... 20161225 20161225</code></pre>
+</div>
+</div>
+</section>
+<section id="data-and-sensfunc" class="level3">
+<h3 class="anchored" data-anchor-id="data-and-sensfunc">DATA and SENSFUNC</h3>
+<p>The RED/BLUE_DATA, RED/BLUE_IVAR, RED/BLUE_DATA_NOSS, RED/BLUE_IVAR_NOSS and RED_BLUE_SENSFUNC extensions contain the reduced binned spectra and their inverse variance, with and without sky subtraction, plus the sensitivity function. Implementation TBD, but I think it makes sense for all of these to be stored in a single Dataset.</p>
+<div id="633b8c59-ec7f-492d-b230-52739177cb33" class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>l1_data <span class="op">=</span> read_l1_data(lr_l1_single_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                      | 0/60 [00:00&lt;?, ?it/s]Locating and converting where necessary:   2%|█▎                                                                            | 1/60 [00:01&lt;01:36,  1.63s/it]Locating and converting where necessary:   3%|██▌                                                                           | 2/60 [00:01&lt;00:48,  1.20it/s]Locating and converting where necessary:  10%|███████▊                                                                      | 6/60 [00:02&lt;00:11,  4.63it/s]Locating and converting where necessary:  13%|██████████▍                                                                   | 8/60 [00:02&lt;00:10,  4.89it/s]Locating and converting where necessary:  17%|████████████▊                                                                | 10/60 [00:03&lt;00:15,  3.18it/s]Locating and converting where necessary:  18%|██████████████                                                               | 11/60 [00:03&lt;00:13,  3.56it/s]Locating and converting where necessary:  22%|████████████████▋                                                            | 13/60 [00:03&lt;00:10,  4.58it/s]Locating and converting where necessary:  25%|███████████████████▎                                                         | 15/60 [00:04&lt;00:09,  4.68it/s]Locating and converting where necessary:  28%|█████████████████████▊                                                       | 17/60 [00:05&lt;00:12,  3.56it/s]Locating and converting where necessary:  32%|████████████████████████▍                                                    | 19/60 [00:05&lt;00:09,  4.46it/s]Locating and converting where necessary:  33%|█████████████████████████▋                                                   | 20/60 [00:05&lt;00:10,  3.76it/s]Locating and converting where necessary:  35%|██████████████████████████▉                                                  | 21/60 [00:05&lt;00:09,  4.11it/s]Locating and converting where necessary:  40%|██████████████████████████████▊                                              | 24/60 [00:06&lt;00:06,  5.29it/s]Locating and converting where necessary:  43%|█████████████████████████████████▎                                           | 26/60 [00:07&lt;00:09,  3.71it/s]Locating and converting where necessary:  45%|██████████████████████████████████▋                                          | 27/60 [00:07&lt;00:07,  4.17it/s]Locating and converting where necessary:  48%|█████████████████████████████████████▏                                       | 29/60 [00:07&lt;00:08,  3.61it/s]Locating and converting where necessary:  52%|███████████████████████████████████████▊                                     | 31/60 [00:08&lt;00:06,  4.48it/s]Locating and converting where necessary:  57%|███████████████████████████████████████████▋                                 | 34/60 [00:08&lt;00:05,  4.38it/s]Locating and converting where necessary:  63%|████████████████████████████████████████████████▊                            | 38/60 [00:09&lt;00:03,  5.64it/s]Locating and converting where necessary:  67%|███████████████████████████████████████████████████▎                         | 40/60 [00:09&lt;00:03,  5.97it/s]Locating and converting where necessary:  68%|████████████████████████████████████████████████████▌                        | 41/60 [00:09&lt;00:03,  5.70it/s]Locating and converting where necessary:  70%|█████████████████████████████████████████████████████▉                       | 42/60 [00:10&lt;00:03,  5.65it/s]Locating and converting where necessary:  72%|███████████████████████████████████████████████████████▏                     | 43/60 [00:10&lt;00:03,  5.47it/s]Locating and converting where necessary:  77%|███████████████████████████████████████████████████████████                  | 46/60 [00:10&lt;00:01,  7.58it/s]Locating and converting where necessary:  80%|█████████████████████████████████████████████████████████████▌               | 48/60 [00:10&lt;00:01,  7.22it/s]Locating and converting where necessary:  83%|████████████████████████████████████████████████████████████████▏            | 50/60 [00:11&lt;00:01,  5.06it/s]Locating and converting where necessary:  87%|██████████████████████████████████████████████████████████████████▋          | 52/60 [00:11&lt;00:01,  6.22it/s]Locating and converting where necessary:  93%|███████████████████████████████████████████████████████████████████████▊     | 56/60 [00:12&lt;00:00,  6.97it/s]Locating and converting where necessary:  98%|███████████████████████████████████████████████████████████████████████████▋ | 59/60 [00:12&lt;00:00,  8.63it/s]Locating and converting where necessary: 100%|█████████████████████████████████████████████████████████████████████████████| 60/60 [00:14&lt;00:00,  4.22it/s]
+Reading netCDF files... took 3.54 s. Size is 27397.910 Mb</code></pre>
+</div>
+</div>
+<div id="9e8cda12-e9a4-4c5d-9ea5-eb23a9130a41" class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(l1_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 29GB
+Dimensions:         (NSPEC: 960, LAMBDA_B: 9649, filename: 60, LAMBDA_R: 15289)
+Coordinates:
+  * NSPEC           (NSPEC) int64 8kB 1 2 3 4 5 6 7 ... 955 956 957 958 959 960
+  * LAMBDA_B        (LAMBDA_B) float64 77kB 3.676e+03 3.676e+03 ... 6.088e+03
+  * filename        (filename) &lt;U14 3kB 'single_1003330' ... 'single_1004121'
+    RUN             (filename) int64 480B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    CAMERA          (filename) &lt;U4 960B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    MJD             (filename) float64 480B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    NIGHT           (filename) &lt;U8 2kB dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+    OBID            (filename) int64 480B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+  * LAMBDA_R        (LAMBDA_R) float64 122kB 5.772e+03 5.772e+03 ... 9.594e+03
+Data variables:
+    BLUE_FLUX       (filename, NSPEC, LAMBDA_B) float32 2GB dask.array&lt;chunksize=(1, 960, 9649), meta=np.ndarray&gt;
+    BLUE_IVAR       (filename, NSPEC, LAMBDA_B) float32 2GB dask.array&lt;chunksize=(1, 960, 9649), meta=np.ndarray&gt;
+    BLUE_FLUX_NOSS  (filename, NSPEC, LAMBDA_B) float32 2GB dask.array&lt;chunksize=(1, 960, 9649), meta=np.ndarray&gt;
+    BLUE_IVAR_NOSS  (filename, NSPEC, LAMBDA_B) float32 2GB dask.array&lt;chunksize=(1, 960, 9649), meta=np.ndarray&gt;
+    BLUE_SENSFUNC   (filename, NSPEC, LAMBDA_B) float32 2GB dask.array&lt;chunksize=(1, 960, 9649), meta=np.ndarray&gt;
+    RED_FLUX        (filename, NSPEC, LAMBDA_R) float32 4GB dask.array&lt;chunksize=(4, 960, 15289), meta=np.ndarray&gt;
+    RED_IVAR        (filename, NSPEC, LAMBDA_R) float32 4GB dask.array&lt;chunksize=(4, 960, 15289), meta=np.ndarray&gt;
+    RED_FLUX_NOSS   (filename, NSPEC, LAMBDA_R) float32 4GB dask.array&lt;chunksize=(4, 960, 15289), meta=np.ndarray&gt;
+    RED_IVAR_NOSS   (filename, NSPEC, LAMBDA_R) float32 4GB dask.array&lt;chunksize=(4, 960, 15289), meta=np.ndarray&gt;
+    RED_SENSFUNC    (filename, NSPEC, LAMBDA_R) float32 4GB dask.array&lt;chunksize=(4, 960, 15289), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<p>It is a good idea to close a <code>Dataset</code> when you are finished with it, as otherwise other processes may not be able to access the same underlying files.</p>
+<div id="7aae8d5e-e3f0-4e9f-a1b9-ca7d169a4fa1" class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>l1_data.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="fibtable-1" class="level3">
+<h3 class="anchored" data-anchor-id="fibtable-1">FIBTABLE</h3>
+<p>The FIBTABLE extension contains information about the fibre allocations, plus some basic measurements.</p>
+<div id="42651204-d8e3-4ba1-bd8f-ed6d7784369a" class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l1_hdus["FIBTABLE"])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="55f3692a-1673-4cf9-bdb3-8d06dd7fe9db" class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>l1_fibre_table <span class="op">=</span> read_fibre_table(lr_l1_single_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading files:   0%|                                                                                                                | 0/60 [00:00&lt;?, ?it/s]Reading files:   2%|█▋                                                                                                      | 1/60 [00:00&lt;00:13,  4.53it/s]Reading files:  15%|███████████████▌                                                                                        | 9/60 [00:00&lt;00:01, 30.88it/s]Reading files:  28%|█████████████████████████████▏                                                                         | 17/60 [00:00&lt;00:01, 37.79it/s]Reading files:  42%|██████████████████████████████████████████▉                                                            | 25/60 [00:00&lt;00:00, 46.30it/s]Reading files:  55%|████████████████████████████████████████████████████████▋                                              | 33/60 [00:00&lt;00:00, 52.62it/s]Reading files:  70%|████████████████████████████████████████████████████████████████████████                               | 42/60 [00:00&lt;00:00, 59.38it/s]Reading files:  83%|█████████████████████████████████████████████████████████████████████████████████████▊                 | 50/60 [00:00&lt;00:00, 63.31it/s]Reading files:  97%|███████████████████████████████████████████████████████████████████████████████████████████████████▌   | 58/60 [00:01&lt;00:00, 64.68it/s]Reading files: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 60/60 [00:01&lt;00:00, 52.99it/s]
+Creating Dataset... took 0.51 s. Size is 18.850 Mb</code></pre>
+</div>
+</div>
+<div id="4a64ee55-aaa5-490f-903d-99ff6a8d7edc" class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(l1_fibre_table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 20MB
+Dimensions:       (APS_ID: 1004, filename: 60)
+Coordinates:
+  * APS_ID        (APS_ID) int16 2kB 1 2 3 4 5 6 ... 1003 1004 1005 1006 1007
+  * filename      (filename) object 480B 'single_1003317' ... 'single_1004148'
+    RUN           (filename) int64 480B 1003317 1003330 ... 1004149 1004148
+    CAMERA        (filename) &lt;U4 960B 'RED' 'BLUE' 'RED' ... 'BLUE' 'RED' 'BLUE'
+    MJD           (filename) float64 480B 5.781e+04 5.781e+04 ... 5.803e+04
+    NIGHT         (filename) &lt;U8 2kB '20170224' '20170224' ... '20170930'
+    OBID          (filename) int64 480B 3802 3900 3900 3802 ... 3936 3936 3936
+Data variables: (12/59)
+    NSPEC         (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    CNAME         (filename, APS_ID) object 482kB nan nan nan ... nan nan nan
+    FIBRERA       (filename, APS_ID) float64 482kB nan nan nan ... nan nan nan
+    FIBREDEC      (filename, APS_ID) float64 482kB nan nan nan ... nan nan nan
+    XPOSITION     (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    YPOSITION     (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    ...            ...
+    MEANFLUX_G    (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    MEANFLUX_R    (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    MEANFLUX_I    (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    MEANFLUX_GG   (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    MEANFLUX_BP   (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan
+    MEANFLUX_RP   (filename, APS_ID) float32 241kB nan nan nan ... nan nan nan</code></pre>
+</div>
+</div>
+<div id="77b74459-0c05-4366-8e74-2b3abf2794d9" class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>l1_fibre_table_nspec <span class="op">=</span> read_fibre_table_nspec(lr_l1_single_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading files:   0%|                                                                                                                | 0/60 [00:00&lt;?, ?it/s]Reading files:   2%|█▋                                                                                                      | 1/60 [00:00&lt;00:10,  5.79it/s]Reading files:   5%|█████▏                                                                                                  | 3/60 [00:00&lt;00:06,  9.38it/s]Reading files:  17%|█████████████████▏                                                                                     | 10/60 [00:00&lt;00:01, 29.46it/s]Reading files:  28%|█████████████████████████████▏                                                                         | 17/60 [00:00&lt;00:01, 42.26it/s]Reading files:  43%|████████████████████████████████████████████▋                                                          | 26/60 [00:00&lt;00:00, 57.15it/s]Reading files:  58%|████████████████████████████████████████████████████████████                                           | 35/60 [00:00&lt;00:00, 66.21it/s]Reading files:  72%|█████████████████████████████████████████████████████████████████████████▊                             | 43/60 [00:00&lt;00:00, 70.29it/s]Reading files:  85%|███████████████████████████████████████████████████████████████████████████████████████▌               | 51/60 [00:01&lt;00:00, 56.87it/s]Reading files:  97%|███████████████████████████████████████████████████████████████████████████████████████████████████▌   | 58/60 [00:01&lt;00:00, 55.20it/s]Reading files: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 60/60 [00:01&lt;00:00, 50.71it/s]
+Creating Dataset... took 0.47 s. Size is 18.024 Mb</code></pre>
+</div>
+</div>
+<div id="c1350619-c5d1-4623-a0ef-63107ba80e52" class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(l1_fibre_table_nspec)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 19MB
+Dimensions:       (NSPEC: 960, filename: 60)
+Coordinates:
+  * NSPEC         (NSPEC) int16 2kB 1 2 3 4 5 6 7 ... 955 956 957 958 959 960
+  * filename      (filename) object 480B 'single_1003330' ... 'single_1004150'
+    RUN           (filename) int64 480B 1003330 1003329 ... 1004146 1004150
+    CAMERA        (filename) &lt;U4 960B 'BLUE' 'RED' 'RED' ... 'BLUE' 'BLUE'
+    MJD           (filename) float64 480B 5.781e+04 5.781e+04 ... 5.803e+04
+    NIGHT         (filename) &lt;U8 2kB '20170224' '20170224' ... '20170930'
+    OBID          (filename) int64 480B 3900 3900 3802 3802 ... 3936 3936 3936
+Data variables: (12/59)
+    CNAME         (filename, NSPEC) object 461kB b'WVE_10502409+5829229' ... nan
+    FIBRERA       (filename, NSPEC) float64 461kB 162.6 162.6 162.4 ... nan nan
+    FIBREDEC      (filename, NSPEC) float64 461kB 58.49 58.62 58.6 ... nan nan
+    XPOSITION     (filename, NSPEC) float32 230kB 10.87 10.85 -8.676 ... nan nan
+    YPOSITION     (filename, NSPEC) float32 230kB 161.6 189.6 185.4 ... nan nan
+    STATUS        (filename, NSPEC) object 461kB b'A' b'A' b'A' ... nan nan nan
+    ...            ...
+    MEANFLUX_R    (filename, NSPEC) float32 230kB -0.05591 1.852 ... nan nan
+    MEANFLUX_I    (filename, NSPEC) float32 230kB nan nan nan ... nan nan nan
+    MEANFLUX_GG   (filename, NSPEC) float32 230kB -0.03694 2.017 ... nan nan
+    MEANFLUX_BP   (filename, NSPEC) float32 230kB -0.03693 2.017 ... nan nan
+    MEANFLUX_RP   (filename, NSPEC) float32 230kB nan nan nan ... nan nan nan
+    APS_ID        (filename, NSPEC) float32 230kB 1.007e+03 1.006e+03 ... nan</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="l2-files" class="level2">
+<h2 class="anchored" data-anchor-id="l2-files">L2 files</h2>
+<p>These contain higher-level processed data products. There are <code>single</code> files, which contain meaurements on a single exposure, and <code>stack</code> files, which contain the same measurements on stacked exposures.</p>
+<p>We will read some simulated stack files to show examples.</p>
+<div id="b60b3be4-7f74-465a-8b69-c5041f61679d" class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>lr_l2_stack_files <span class="op">=</span> get_lr_l2_stack_files(date<span class="op">=</span><span class="st">"2017*"</span>)</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(lr_l2_stack_files), <span class="st">"low-res L2 stack files"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>6 low-res L2 stack files</code></pre>
+</div>
+</div>
+<div id="10bf8b58-3990-4a46-a68e-5f5bc31027f9" class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>l2_hdus <span class="op">=</span> fits.<span class="bu">open</span>(lr_l2_stack_files[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>WEAVE L2 stack files contain six extensions:</p>
+<div id="84bb6b06" class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>([hdu.name <span class="cf">for</span> hdu <span class="kw">in</span> l2_hdus])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['PRIMARY', 'CLASS_TABLE', 'STAR_TABLE', 'GALAXY_TABLE', 'CLASS_SPEC', 'STAR_SPEC', 'GALAXY_SPEC']</code></pre>
+</div>
+</div>
+<section id="primary-2" class="level3">
+<h3 class="anchored" data-anchor-id="primary-2">PRIMARY</h3>
+<p>The PRIMARY extension contains only a header with some basic information.</p>
+<div id="a901b78b" class="cell">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>l2_hdus[<span class="st">"PRIMARY"</span>].header</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>SIMPLE  =                    T / conforms to FITS standard                      
+BITPIX  =                    8 / array data type                                
+NAXIS   =                    0 / number of array dimensions                     
+EXTEND  =                    T                                                  
+L1_REF_0= 'stack_1003318.fit'  / L1 reference file                              
+L1_REF_1= 'stack_1003317.fit'  / L1 reference file                              
+L1_REF_2= '' / L1 reference file                                                
+DATE-OBS= '20170224'           / L1: OBS-DATE                                   
+OBSMODE = 'MOS     '           / L1: OBSMODE                                    
+RES-OBS = 'LR      '           / L2: RES-DATE                                   
+OBID    = '3802    '           / L1: OBID                                       
+CHECKSUM= '97WQA7WO97WOA7WO'   / HDU checksum updated 2022-02-08T02:11:32       
+DATASUM = '0       '           / data unit checksum updated 2022-02-08T02:11:32 </code></pre>
+</div>
+</div>
+<div id="7d2df3d3-2c02-4f7d-a4d2-494a0551f660" class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>l2_primary_header <span class="op">=</span> read_primary_header(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading files:   0%|                                                                                                                 | 0/6 [00:00&lt;?, ?it/s]Reading files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████| 6/6 [00:00&lt;00:00, 108.00it/s]
+Creating Dataset... took 0.01 s. Size is 0.002 Mb</code></pre>
+</div>
+</div>
+<div id="d5dad710-e327-4a12-96f2-9263947790ce" class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(l2_primary_header)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 2kB
+Dimensions:   (filename: 6)
+Coordinates:
+  * filename  (filename) object 48B 'stack_1003318__stack_1003317_APS' ... 's...
+    OBID      (filename) &lt;U4 96B '3802' '3900' '3803' '3653' '3806' '3756'
+Data variables:
+    SIMPLE    (filename) bool 6B True True True True True True
+    BITPIX    (filename) int64 48B 8 8 8 8 8 8
+    NAXIS     (filename) int64 48B 0 0 0 0 0 0
+    EXTEND    (filename) bool 6B True True True True True True
+    L1_REF_0  (filename) &lt;U17 408B 'stack_1003318.fit' ... 'stack_1003438.fit'
+    L1_REF_1  (filename) &lt;U17 408B 'stack_1003317.fit' ... 'stack_1003437.fit'
+    L1_REF_2  (filename) &lt;U1 24B '' '' '' '' '' ''
+    DATE-OBS  (filename) &lt;U8 192B '20170224' '20170225' ... '20170227'
+    OBSMODE   (filename) &lt;U3 72B 'MOS' 'MOS' 'MOS' 'MOS' 'MOS' 'MOS'
+    RES-OBS   (filename) &lt;U2 48B 'LR' 'LR' 'LR' 'LR' 'LR' 'LR'
+    CHECKSUM  (filename) &lt;U16 384B '97WQA7WO97WOA7WO' ... '36TMA6RK46RKA6RK'
+    DATASUM   (filename) &lt;U1 24B '0' '0' '0' '0' '0' '0'</code></pre>
+</div>
+</div>
+</section>
+<section id="class_table" class="level3">
+<h3 class="anchored" data-anchor-id="class_table">CLASS_TABLE</h3>
+<p>The CLASS_TABLE extension contains information from matching various templates to the spectra. The redshift and class of the best fitting template are given, as well as the full cross-correlation results of each template as a function of redshift.</p>
+<div id="79ad1999-309c-431c-aef0-54ddd9000b57" class="cell">
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l2_hdus["CLASS_TABLE"]) # contains multidimensional columns, so not shown</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="c590c27c" class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>class_table <span class="op">=</span> read_class_table(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                       | 0/6 [00:00&lt;?, ?it/s]Locating and converting where necessary:  17%|█████████████▏                                                                 | 1/6 [00:01&lt;00:05,  1.13s/it]Locating and converting where necessary:  50%|███████████████████████████████████████▌                                       | 3/6 [00:01&lt;00:01,  3.00it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:01&lt;00:00,  4.42it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:01&lt;00:00,  3.49it/s]
+Reading netCDF files... took 1.19 s. Size is 178.858 Mb</code></pre>
+</div>
+</div>
+<div id="0cafeb84-144a-4d1a-8dbf-10a9a28d1d5c" class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(class_table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 188MB
+Dimensions:           (APS_ID: 995, CZZ_GALAXY: 1446, CZZ_QSO: 1648,
+                       CZZ_STAR_A: 101, CZZ_STAR_B: 101, CZZ_STAR_CV: 101,
+                       CZZ_STAR_F: 101, CZZ_STAR_G: 101, CZZ_STAR_K: 101,
+                       CZZ_STAR_M: 101, CZZ_STAR_WD: 101, filename: 6,
+                       I_COEFF: 10)
+Coordinates: (12/13)
+  * APS_ID            (APS_ID) int64 8kB 1 2 3 4 5 ... 1003 1004 1005 1006 1007
+  * CZZ_GALAXY        (CZZ_GALAXY) float64 12kB -0.005 -0.004312 ... 1.698 1.7
+  * CZZ_QSO           (CZZ_QSO) float64 13kB 0.05 0.05121 ... 5.985 5.993
+  * CZZ_STAR_A        (CZZ_STAR_A) float64 808B -0.002 -0.00196 ... 0.002
+  * CZZ_STAR_B        (CZZ_STAR_B) float64 808B -0.002 -0.00196 ... 0.002
+  * CZZ_STAR_CV       (CZZ_STAR_CV) float64 808B -0.002 -0.00196 ... 0.002
+    ...                ...
+  * CZZ_STAR_G        (CZZ_STAR_G) float64 808B -0.002 -0.00196 ... 0.002
+  * CZZ_STAR_K        (CZZ_STAR_K) float64 808B -0.002 -0.00196 ... 0.002
+  * CZZ_STAR_M        (CZZ_STAR_M) float64 808B -0.002 -0.00196 ... 0.002
+  * CZZ_STAR_WD       (CZZ_STAR_WD) float64 808B -0.002 -0.00196 ... 0.002
+  * filename          (filename) &lt;U32 768B 'stack_1003330__stack_1003329_APS'...
+    OBID              (filename) &lt;U4 96B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Dimensions without coordinates: I_COEFF
+Data variables: (12/25)
+    TARGID            (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    CNAME             (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    Z                 (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    ZERR              (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    ZWARN             (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    CLASS             (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    ...                ...
+    CZZ_CHI2_STAR_CV  (filename, APS_ID, CZZ_STAR_CV) float64 5MB dask.array&lt;chunksize=(1, 995, 101), meta=np.ndarray&gt;
+    CZZ_CHI2_STAR_F   (filename, APS_ID, CZZ_STAR_F) float64 5MB dask.array&lt;chunksize=(1, 995, 101), meta=np.ndarray&gt;
+    CZZ_CHI2_STAR_G   (filename, APS_ID, CZZ_STAR_G) float64 5MB dask.array&lt;chunksize=(1, 995, 101), meta=np.ndarray&gt;
+    CZZ_CHI2_STAR_K   (filename, APS_ID, CZZ_STAR_K) float64 5MB dask.array&lt;chunksize=(1, 995, 101), meta=np.ndarray&gt;
+    CZZ_CHI2_STAR_M   (filename, APS_ID, CZZ_STAR_M) float64 5MB dask.array&lt;chunksize=(1, 995, 101), meta=np.ndarray&gt;
+    CZZ_CHI2_STAR_WD  (filename, APS_ID, CZZ_STAR_WD) float64 5MB dask.array&lt;chunksize=(1, 995, 101), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<div id="333f61a4-8ab7-4b33-966e-6b37d69637ba" class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>class_table.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="star_table" class="level3">
+<h3 class="anchored" data-anchor-id="star_table">STAR_TABLE</h3>
+<p>The STAR_TABLE extension contains measurements of stellar parameters.</p>
+<div id="48410e65-cff6-4e82-b150-6835c534162c" class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l2_hdus["STAR_TABLE"])  # contains multidimensional columns, so not shown</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="923c52e8-a5d5-4e4d-af3e-cecf8aa1838e" class="cell">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>star_table <span class="op">=</span> read_star_table(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                       | 0/6 [00:00&lt;?, ?it/s]Locating and converting where necessary:  17%|█████████████▏                                                                 | 1/6 [00:00&lt;00:02,  2.32it/s]Locating and converting where necessary:  67%|████████████████████████████████████████████████████▋                          | 4/6 [00:00&lt;00:00,  8.56it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:01&lt;00:00,  5.61it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:01&lt;00:00,  5.56it/s]
+Reading netCDF files... took 1.03 s. Size is 0.065 Mb</code></pre>
+</div>
+</div>
+<div id="4b009dec-529b-4fc1-a366-1e5738d73203" class="cell">
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(star_table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 69kB
+Dimensions:        (APS_ID: 24, I_COVAR: 5, J_COVAR: 5, filename: 6, I_ELEM: 2)
+Coordinates:
+  * APS_ID         (APS_ID) int64 192B 194 222 283 304 329 ... 922 946 948 992
+  * I_COVAR        (I_COVAR) &lt;U5 100B 'TEFF' 'LOGG' 'FEH' 'ALPHA' 'MICRO'
+  * J_COVAR        (J_COVAR) &lt;U5 100B 'TEFF' 'LOGG' 'FEH' 'ALPHA' 'MICRO'
+  * filename       (filename) &lt;U32 768B 'stack_1003354__stack_1003353_APS' .....
+    OBID           (filename) &lt;U4 96B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Dimensions without coordinates: I_ELEM
+Data variables: (12/33)
+    TARGID         (filename, APS_ID) object 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    CNAME          (filename, APS_ID) object 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    VRAD           (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    VRAD_ERR       (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    SKEWNESS_RVS   (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    KURTOSIS_RVS   (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    ...             ...
+    COVAR          (filename, APS_ID, I_COVAR, J_COVAR) float64 29kB dask.array&lt;chunksize=(1, 24, 5, 5), meta=np.ndarray&gt;
+    ELEM           (filename, APS_ID, I_ELEM) float64 2kB dask.array&lt;chunksize=(1, 24, 2), meta=np.ndarray&gt;
+    ELEM_ERR       (filename, APS_ID, I_ELEM) float64 2kB dask.array&lt;chunksize=(1, 24, 2), meta=np.ndarray&gt;
+    SNR_FR         (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    CHISQ_TOT      (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    FLAG_FR        (filename, APS_ID) float64 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<div id="7c61c4be-a72b-4d21-bad5-e2880fe63bf8" class="cell">
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>star_table.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="galaxy_table" class="level3">
+<h3 class="anchored" data-anchor-id="galaxy_table">GALAXY_TABLE</h3>
+<p>The GALAXY_TABLE extension contains measurements of galaxy parameters, including Hubble-flow corrected redshifts, stellar kinematics, line fits and indices.</p>
+<div id="15246746-54a3-4cdb-a1d8-7a65e556d62d" class="cell">
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l2_hdus["GALAXY_TABLE"], unit_parse_strict="silent")  # contains multidimensional columns, so not shown</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="dd1ea6a8" class="cell">
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>galaxy_table <span class="op">=</span> read_galaxy_table(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                       | 0/6 [00:00&lt;?, ?it/s]Locating and converting where necessary:  17%|█████████████▏                                                                 | 1/6 [00:01&lt;00:05,  1.03s/it]Locating and converting where necessary:  83%|█████████████████████████████████████████████████████████████████▊             | 5/6 [00:01&lt;00:00,  5.42it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:01&lt;00:00,  4.88it/s]
+Reading netCDF files... took 1.14 s. Size is 27.393 Mb</code></pre>
+</div>
+</div>
+<div id="194871bb-eb0d-47ce-9476-364611a35939" class="cell">
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(galaxy_table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 29MB
+Dimensions:         (APS_ID: 994, LINE: 22, QTY: 13, INDEX: 292, filename: 6)
+Coordinates:
+  * APS_ID          (APS_ID) int32 4kB 1 2 3 4 5 6 ... 1003 1004 1005 1006 1007
+  * LINE            (LINE) &lt;U15 1kB 'HeII_3203.15' ... '[ArIII]_7135.67'
+  * QTY             (QTY) &lt;U9 468B 'FLUX' 'AMPL' 'Z' ... 'ERR_EBMV0' 'ERR_EBMV1'
+  * INDEX           (INDEX) &lt;U16 19kB 'BL1719' 'ERR_BL1719' ... 'ERR_MgI2.28'
+  * filename        (filename) &lt;U32 768B 'stack_1003426__stack_1003425_APS' ....
+    OBID            (filename) &lt;U4 96B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Data variables: (12/26)
+    TARGID          (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    CNAME           (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    ZCORR           (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    V               (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    SIGMA           (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    H3              (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    ...              ...
+    FORM_ERR_H4     (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    FORM_ERR_H5     (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    FORM_ERR_H6     (filename, APS_ID) float64 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    FWHM_FLAG       (filename, APS_ID) float32 24kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    LINES           (filename, QTY, LINE, APS_ID) float64 14MB dask.array&lt;chunksize=(1, 13, 22, 994), meta=np.ndarray&gt;
+    INDICES         (filename, INDEX, APS_ID) float64 14MB dask.array&lt;chunksize=(1, 292, 994), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<div id="1085c7dc-736d-475c-97e6-16f7a7613eb3" class="cell">
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>galaxy_table.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="class_spec" class="level3">
+<h3 class="anchored" data-anchor-id="class_spec">CLASS_SPEC</h3>
+<p>The CLASS_SPEC extension contains spectra and model fits, performed separately for the red and blue arms.</p>
+<div id="7636b432-232a-4f27-a766-4f4b9d76ceb7" class="cell">
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l2_hdus["CLASS_SPEC"], unit_parse_strict="silent")  # contains multidimensional columns, so not shown</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="d974427c" class="cell">
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>class_spec <span class="op">=</span> read_class_spec(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                       | 0/6 [00:00&lt;?, ?it/s]Locating and converting where necessary:  17%|█████████████▏                                                                 | 1/6 [00:02&lt;00:14,  2.97s/it]Locating and converting where necessary:  33%|██████████████████████████▎                                                    | 2/6 [00:03&lt;00:06,  1.64s/it]Locating and converting where necessary:  50%|███████████████████████████████████████▌                                       | 3/6 [00:04&lt;00:04,  1.48s/it]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:07&lt;00:00,  1.01s/it]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:07&lt;00:00,  1.21s/it]
+Reading netCDF files... took 0.52 s. Size is 1703.853 Mb</code></pre>
+</div>
+</div>
+<div id="9ecf450d-93c9-4c8a-8ad6-d9b824129c30" class="cell">
+<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(class_spec)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 2GB
+Dimensions:     (APS_ID: 995, LAMBDA_B: 9648, LAMBDA_R: 15288, filename: 6)
+Coordinates:
+  * APS_ID      (APS_ID) int64 8kB 1 2 3 4 5 6 ... 1002 1003 1004 1005 1006 1007
+  * LAMBDA_B    (LAMBDA_B) float32 39kB 3.677e+03 3.677e+03 ... 6.089e+03
+  * LAMBDA_R    (LAMBDA_R) float32 61kB 5.774e+03 5.774e+03 ... 9.596e+03
+  * filename    (filename) &lt;U32 768B 'stack_1003330__stack_1003329_APS' ... '...
+    OBID        (filename) &lt;U4 96B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Data variables:
+    TARGID      (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    CNAME       (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 995), meta=np.ndarray&gt;
+    FLUX_RR_B   (filename, APS_ID, LAMBDA_B) float32 230MB dask.array&lt;chunksize=(1, 995, 9648), meta=np.ndarray&gt;
+    IVAR_RR_B   (filename, APS_ID, LAMBDA_B) float32 230MB dask.array&lt;chunksize=(1, 995, 9648), meta=np.ndarray&gt;
+    MODEL_RR_B  (filename, APS_ID, LAMBDA_B) float32 230MB dask.array&lt;chunksize=(1, 995, 9648), meta=np.ndarray&gt;
+    FLUX_RR_R   (filename, APS_ID, LAMBDA_R) float32 365MB dask.array&lt;chunksize=(1, 995, 15288), meta=np.ndarray&gt;
+    IVAR_RR_R   (filename, APS_ID, LAMBDA_R) float32 365MB dask.array&lt;chunksize=(1, 995, 15288), meta=np.ndarray&gt;
+    MODEL_RR_R  (filename, APS_ID, LAMBDA_R) float32 365MB dask.array&lt;chunksize=(1, 995, 15288), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<div id="15202991-dc49-45b2-9884-37805f005aa8" class="cell">
+<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>class_spec.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="star_spec" class="level3">
+<h3 class="anchored" data-anchor-id="star_spec">STAR_SPEC</h3>
+<p>The STAR_SPEC extension contains spectra and model fits for stellar measurements.</p>
+<div id="3852a937-2588-45c6-b7c8-02bfa8d09e41" class="cell">
+<div class="sourceCode cell-code" id="cb93"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l2_hdus["STAR_SPEC"], unit_parse_strict="silent")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="4e6cf690-5bd6-4529-b45b-98d0b512308b" class="cell">
+<div class="sourceCode cell-code" id="cb94"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a>star_spec <span class="op">=</span> read_star_spec(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                       | 0/6 [00:00&lt;?, ?it/s]Locating and converting where necessary:  17%|█████████████▏                                                                 | 1/6 [00:00&lt;00:02,  1.87it/s]Locating and converting where necessary:  50%|███████████████████████████████████████▌                                       | 3/6 [00:00&lt;00:00,  4.95it/s]Locating and converting where necessary:  67%|████████████████████████████████████████████████████▋                          | 4/6 [00:00&lt;00:00,  4.47it/s]Locating and converting where necessary:  83%|█████████████████████████████████████████████████████████████████▊             | 5/6 [00:01&lt;00:00,  4.01it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:03&lt;00:00,  1.04it/s]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:03&lt;00:00,  1.61it/s]
+Reading netCDF files... took 0.74 s. Size is 106.808 Mb</code></pre>
+</div>
+</div>
+<div id="06397d39-4702-421c-be3e-4d3273fb00a3" class="cell">
+<div class="sourceCode cell-code" id="cb96"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(star_spec)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 112MB
+Dimensions:       (APS_ID: 24, filename: 6, LAMBIN_B: 9648, LAMBIN_R: 15288,
+                   LAMBIN_C: 23672)
+Coordinates:
+  * APS_ID        (APS_ID) int64 192B 194 222 283 304 329 ... 922 946 948 992
+  * filename      (filename) &lt;U32 768B 'stack_1003342__stack_1003341_APS' ......
+    OBID          (filename) &lt;U4 96B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Dimensions without coordinates: LAMBIN_B, LAMBIN_R, LAMBIN_C
+Data variables: (12/14)
+    TARGID        (filename, APS_ID) object 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    CNAME         (filename, APS_ID) object 1kB dask.array&lt;chunksize=(1, 24), meta=np.ndarray&gt;
+    LAMBDA_RVS_B  (filename, APS_ID, LAMBIN_B) float32 6MB dask.array&lt;chunksize=(1, 24, 9648), meta=np.ndarray&gt;
+    FLUX_RVS_B    (filename, APS_ID, LAMBIN_B) float32 6MB dask.array&lt;chunksize=(1, 24, 9648), meta=np.ndarray&gt;
+    ERROR_RVS_B   (filename, APS_ID, LAMBIN_B) float32 6MB dask.array&lt;chunksize=(1, 24, 9648), meta=np.ndarray&gt;
+    MODEL_RVS_B   (filename, APS_ID, LAMBIN_B) float32 6MB dask.array&lt;chunksize=(1, 24, 9648), meta=np.ndarray&gt;
+    ...            ...
+    ERROR_RVS_R   (filename, APS_ID, LAMBIN_R) float32 9MB dask.array&lt;chunksize=(1, 24, 15288), meta=np.ndarray&gt;
+    MODEL_RVS_R   (filename, APS_ID, LAMBIN_R) float32 9MB dask.array&lt;chunksize=(1, 24, 15288), meta=np.ndarray&gt;
+    LAMBDA_FR_C   (filename, APS_ID, LAMBIN_C) float32 14MB dask.array&lt;chunksize=(1, 24, 23672), meta=np.ndarray&gt;
+    FLUX_FR_C     (filename, APS_ID, LAMBIN_C) float32 14MB dask.array&lt;chunksize=(1, 24, 23672), meta=np.ndarray&gt;
+    ERROR_FR_C    (filename, APS_ID, LAMBIN_C) float32 14MB dask.array&lt;chunksize=(1, 24, 23672), meta=np.ndarray&gt;
+    MODEL_FR_C    (filename, APS_ID, LAMBIN_C) float32 14MB dask.array&lt;chunksize=(1, 24, 23672), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<div id="18d4bd67-c61d-40d2-887e-b37ccac35443" class="cell">
+<div class="sourceCode cell-code" id="cb98"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>star_spec.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="galaxy_spec" class="level3">
+<h3 class="anchored" data-anchor-id="galaxy_spec">GALAXY_SPEC</h3>
+<p>The GALAXY_SPEC extension contains log-wavelength-binned spectra and model fits by PPXF and GANDALF.</p>
+<div id="5fa7df2d-01b3-406f-83f1-8bb757a3dfa3" class="cell">
+<div class="sourceCode cell-code" id="cb99"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table.read(l2_hdus["GALAXY_SPEC"], unit_parse_strict="silent")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="4471c3ab-75e2-4e6c-973b-b4d4f311a117" class="cell">
+<div class="sourceCode cell-code" id="cb100"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a>galaxy_spec <span class="op">=</span> read_galaxy_spec(lr_l2_stack_files)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Locating and converting where necessary:   0%|                                                                                       | 0/6 [00:00&lt;?, ?it/s]Locating and converting where necessary:  17%|█████████████▏                                                                 | 1/6 [00:12&lt;01:04, 12.86s/it]Locating and converting where necessary:  33%|██████████████████████████▎                                                    | 2/6 [00:16&lt;00:28,  7.23s/it]Locating and converting where necessary:  50%|███████████████████████████████████████▌                                       | 3/6 [00:16&lt;00:12,  4.13s/it]Locating and converting where necessary:  67%|████████████████████████████████████████████████████▋                          | 4/6 [00:16&lt;00:05,  2.63s/it]Locating and converting where necessary:  83%|█████████████████████████████████████████████████████████████████▊             | 5/6 [00:17&lt;00:01,  1.84s/it]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:19&lt;00:00,  1.88s/it]Locating and converting where necessary: 100%|███████████████████████████████████████████████████████████████████████████████| 6/6 [00:19&lt;00:00,  3.22s/it]
+Reading netCDF files... took 0.81 s. Size is 10232.270 Mb</code></pre>
+</div>
+</div>
+<div id="3a337f9b-ba95-49c6-8202-671c2011fb49" class="cell">
+<div class="sourceCode cell-code" id="cb102"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(galaxy_spec)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;xarray.Dataset&gt; Size: 11GB
+Dimensions:           (APS_ID: 994, filename: 6, LOGLAMBIN: 23671)
+Coordinates:
+  * APS_ID            (APS_ID) int32 4kB 1 2 3 4 5 ... 1003 1004 1005 1006 1007
+  * filename          (filename) &lt;U32 768B 'stack_1003330__stack_1003329_APS'...
+    OBID              (filename) &lt;U4 96B dask.array&lt;chunksize=(1,), meta=np.ndarray&gt;
+Dimensions without coordinates: LOGLAMBIN
+Data variables: (12/15)
+    TARGID            (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    CNAME             (filename, APS_ID) object 48kB dask.array&lt;chunksize=(1, 994), meta=np.ndarray&gt;
+    LOGLAM_PPXF       (filename, APS_ID, LOGLAMBIN) float32 565MB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    FLUX_PPXF         (filename, APS_ID, LOGLAMBIN) float32 565MB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    ERROR_PPXF        (filename, APS_ID, LOGLAMBIN) float32 565MB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    MODEL_PPXF        (filename, APS_ID, LOGLAMBIN) float32 565MB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    ...                ...
+    ERROR_GAND        (filename, APS_ID, LOGLAMBIN) float32 565MB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    MODEL_GAND        (filename, APS_ID, LOGLAMBIN) float64 1GB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    EMISSION_GAND     (filename, APS_ID, LOGLAMBIN) float64 1GB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    FLUX_CLEAN_GAND   (filename, APS_ID, LOGLAMBIN) float64 1GB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    MODEL_CLEAN_GAND  (filename, APS_ID, LOGLAMBIN) float64 1GB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;
+    GOODPIX_GAND      (filename, APS_ID, LOGLAMBIN) float64 1GB dask.array&lt;chunksize=(1, 994, 23671), meta=np.ndarray&gt;</code></pre>
+</div>
+</div>
+<div id="f1342299-1185-4c90-b090-7b9cc27c7ccc" class="cell">
+<div class="sourceCode cell-code" id="cb104"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a>galaxy_spec.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/bamford\.github\.io\/qagmire");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/bamford/qagmire/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
