@@ -252,7 +252,7 @@ def get_weave_files(
     folder="weaveio",  # folder within the `data_path`
 ):
     """Get a list of matching WEAVE files."""
-    if level != "raw":
+    if level.upper() != "RAW":
         filetype += "_"
     level = "".join(f"[{c.upper()+c.lower()}]" for c in level)
     pattern = f"**/{level}/{date}*/{filetype}*{runid}*.fit*"

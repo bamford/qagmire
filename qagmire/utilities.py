@@ -145,7 +145,7 @@ def get_mags_from_spectra(
     wl: xr.DataArray,  # wavelengths, in Angstroms, at which all the spectra are sampled
     flam: xr.DataArray,  # values of the spectra, in erg/s/cm^2/AA
     band="GROUND_JOHNSON_V",  # the filter for which to determine the magnitude
-):
+) -> xr.DataArray:
     """Compute magnitudes from a DataArray of spectra."""
     return xr.apply_ufunc(
         _get_mags_numpy,
@@ -158,18 +158,21 @@ def get_mags_from_spectra(
     )
 
 # %% ../nbs/03_utilities.ipynb 18
-def add_expid(ds):
-    """Add EXPID coord to a DataSet.
+def add_expid(
+    ds: xr.Dataset,  # the Dataset to which to add the EXPID coord
+) -> xr.Dataset:
+    """Add EXPID coord to a Dataset.
 
-    This is constructed by numbering `filename`s for each `CAMERA` in order of `MJD`
+    This is constructed by numbering `filename`/`RUN`s for each `CAMERA` in order of `MJD`
     and adding this to `OBID` * 100000000, to create a unique ID for each exposure
     (i.e. a pair of `RUN`s taken with each `CAMERA`).
     """
 
     def expid1(y):
         def expid2(x):
-            expid = x["OBID"].to_numpy() * 100000000 + np.arange(len(x["filename"])) + 1
-            return x.assign_coords({"EXPID": ("filename", expid)})
+            dim = "RUN" if "RUN" in x.dims else "filename"
+            expid = x["OBID"].to_numpy() * 100000000 + np.arange(len(x[dim])) + 1
+            return x.assign_coords({"EXPID": (dim, expid)})
 
         return y.groupby("CAMERA").map(expid2)
 
